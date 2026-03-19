@@ -14,16 +14,343 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      admit_cards: {
+        Row: {
+          application_id: string
+          center_id: string
+          exam_id: string
+          generated_at: string
+          id: string
+          roll_number: string
+          user_id: string
+        }
+        Insert: {
+          application_id: string
+          center_id: string
+          exam_id: string
+          generated_at?: string
+          id?: string
+          roll_number: string
+          user_id: string
+        }
+        Update: {
+          application_id?: string
+          center_id?: string
+          exam_id?: string
+          generated_at?: string
+          id?: string
+          roll_number?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "admit_cards_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "exam_applications"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admit_cards_center_id_fkey"
+            columns: ["center_id"]
+            isOneToOne: false
+            referencedRelation: "exam_centers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "admit_cards_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_applications: {
+        Row: {
+          address_details: Json | null
+          created_at: string
+          current_step: number
+          documents: Json | null
+          education_details: Json | null
+          exam_id: string
+          fee_status: string
+          id: string
+          is_submitted: boolean | null
+          personal_details: Json | null
+          selected_subjects: Json | null
+          submitted_at: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          address_details?: Json | null
+          created_at?: string
+          current_step?: number
+          documents?: Json | null
+          education_details?: Json | null
+          exam_id: string
+          fee_status?: string
+          id?: string
+          is_submitted?: boolean | null
+          personal_details?: Json | null
+          selected_subjects?: Json | null
+          submitted_at?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          address_details?: Json | null
+          created_at?: string
+          current_step?: number
+          documents?: Json | null
+          education_details?: Json | null
+          exam_id?: string
+          fee_status?: string
+          id?: string
+          is_submitted?: boolean | null
+          personal_details?: Json | null
+          selected_subjects?: Json | null
+          submitted_at?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_applications_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exam_centers: {
+        Row: {
+          address: string | null
+          allocated: number
+          capacity: number
+          center_code: string | null
+          center_name: string
+          city: string | null
+          created_at: string
+          exam_id: string
+          id: string
+          state: string | null
+        }
+        Insert: {
+          address?: string | null
+          allocated?: number
+          capacity?: number
+          center_code?: string | null
+          center_name: string
+          city?: string | null
+          created_at?: string
+          exam_id: string
+          id?: string
+          state?: string | null
+        }
+        Update: {
+          address?: string | null
+          allocated?: number
+          capacity?: number
+          center_code?: string | null
+          center_name?: string
+          city?: string | null
+          created_at?: string
+          exam_id?: string
+          id?: string
+          state?: string | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "exam_centers_exam_id_fkey"
+            columns: ["exam_id"]
+            isOneToOne: false
+            referencedRelation: "exams"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      exams: {
+        Row: {
+          academic_year: string | null
+          class: string
+          created_at: string
+          created_by: string | null
+          description: string | null
+          exam_date: string | null
+          fee_amount: number
+          id: string
+          instructions: string | null
+          is_active: boolean | null
+          last_date_to_apply: string | null
+          subjects: Json | null
+          title: string
+          updated_at: string
+        }
+        Insert: {
+          academic_year?: string | null
+          class: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          exam_date?: string | null
+          fee_amount?: number
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          last_date_to_apply?: string | null
+          subjects?: Json | null
+          title: string
+          updated_at?: string
+        }
+        Update: {
+          academic_year?: string | null
+          class?: string
+          created_at?: string
+          created_by?: string | null
+          description?: string | null
+          exam_date?: string | null
+          fee_amount?: number
+          id?: string
+          instructions?: string | null
+          is_active?: boolean | null
+          last_date_to_apply?: string | null
+          subjects?: Json | null
+          title?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      payments: {
+        Row: {
+          amount: number
+          application_id: string
+          created_at: string
+          id: string
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          status: string
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          amount: number
+          application_id: string
+          created_at?: string
+          id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          amount?: number
+          application_id?: string
+          created_at?: string
+          id?: string
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          status?: string
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "payments_application_id_fkey"
+            columns: ["application_id"]
+            isOneToOne: false
+            referencedRelation: "exam_applications"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      profiles: {
+        Row: {
+          class: string | null
+          created_at: string
+          dob: string | null
+          email: string | null
+          father_name: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          mobile: string | null
+          mother_name: string | null
+          photo_url: string | null
+          signature_url: string | null
+          updated_at: string
+          user_id: string
+        }
+        Insert: {
+          class?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          father_name?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          mobile?: string | null
+          mother_name?: string | null
+          photo_url?: string | null
+          signature_url?: string | null
+          updated_at?: string
+          user_id: string
+        }
+        Update: {
+          class?: string | null
+          created_at?: string
+          dob?: string | null
+          email?: string | null
+          father_name?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          mobile?: string | null
+          mother_name?: string | null
+          photo_url?: string | null
+          signature_url?: string | null
+          updated_at?: string
+          user_id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "admin" | "student"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +477,8 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["admin", "student"],
+    },
   },
 } as const
