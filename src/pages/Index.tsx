@@ -30,7 +30,7 @@ export default function Index() {
             <Button size="lg" variant="secondary" onClick={() => navigate("/auth")}>
               Student Login <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
-            <Button size="lg" variant="outline" className="border-primary-foreground/30 text-primary-foreground hover:bg-primary-foreground/10" onClick={() => navigate("/auth")}>
+            <Button size="lg" variant="outline" className="border-primary-foreground text-primary-foreground hover:bg-primary-foreground/20" onClick={() => navigate("/auth")}>
               New Registration
             </Button>
           </div>
