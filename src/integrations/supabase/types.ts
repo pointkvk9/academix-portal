@@ -132,10 +132,20 @@ export type Database = {
           capacity: number
           center_code: string | null
           center_name: string
+          center_type: string | null
           city: string | null
+          contact_email: string | null
+          contact_number: string | null
           created_at: string
           exam_id: string
+          facilities: Json | null
+          gate_closing_time: string | null
           id: string
+          incharge_name: string | null
+          is_accessible: boolean | null
+          landmark: string | null
+          pincode: string | null
+          reporting_time: string | null
           state: string | null
         }
         Insert: {
@@ -144,10 +154,20 @@ export type Database = {
           capacity?: number
           center_code?: string | null
           center_name: string
+          center_type?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_number?: string | null
           created_at?: string
           exam_id: string
+          facilities?: Json | null
+          gate_closing_time?: string | null
           id?: string
+          incharge_name?: string | null
+          is_accessible?: boolean | null
+          landmark?: string | null
+          pincode?: string | null
+          reporting_time?: string | null
           state?: string | null
         }
         Update: {
@@ -156,10 +176,20 @@ export type Database = {
           capacity?: number
           center_code?: string | null
           center_name?: string
+          center_type?: string | null
           city?: string | null
+          contact_email?: string | null
+          contact_number?: string | null
           created_at?: string
           exam_id?: string
+          facilities?: Json | null
+          gate_closing_time?: string | null
           id?: string
+          incharge_name?: string | null
+          is_accessible?: boolean | null
+          landmark?: string | null
+          pincode?: string | null
+          reporting_time?: string | null
           state?: string | null
         }
         Relationships: [
@@ -179,14 +209,27 @@ export type Database = {
           created_at: string
           created_by: string | null
           description: string | null
+          duration_minutes: number | null
+          eligibility: string | null
           exam_date: string | null
+          exam_pattern: string | null
+          exam_time: string | null
+          exam_type: string | null
           fee_amount: number
           id: string
+          important_dates: Json | null
           instructions: string | null
           is_active: boolean | null
+          language: string | null
           last_date_to_apply: string | null
+          negative_marking: boolean | null
+          negative_marks_value: number | null
+          passing_marks: number | null
           subjects: Json | null
+          syllabus_url: string | null
           title: string
+          total_marks: number | null
+          total_questions: number | null
           updated_at: string
         }
         Insert: {
@@ -195,14 +238,27 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          duration_minutes?: number | null
+          eligibility?: string | null
           exam_date?: string | null
+          exam_pattern?: string | null
+          exam_time?: string | null
+          exam_type?: string | null
           fee_amount?: number
           id?: string
+          important_dates?: Json | null
           instructions?: string | null
           is_active?: boolean | null
+          language?: string | null
           last_date_to_apply?: string | null
+          negative_marking?: boolean | null
+          negative_marks_value?: number | null
+          passing_marks?: number | null
           subjects?: Json | null
+          syllabus_url?: string | null
           title: string
+          total_marks?: number | null
+          total_questions?: number | null
           updated_at?: string
         }
         Update: {
@@ -211,14 +267,27 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           description?: string | null
+          duration_minutes?: number | null
+          eligibility?: string | null
           exam_date?: string | null
+          exam_pattern?: string | null
+          exam_time?: string | null
+          exam_type?: string | null
           fee_amount?: number
           id?: string
+          important_dates?: Json | null
           instructions?: string | null
           is_active?: boolean | null
+          language?: string | null
           last_date_to_apply?: string | null
+          negative_marking?: boolean | null
+          negative_marks_value?: number | null
+          passing_marks?: number | null
           subjects?: Json | null
+          syllabus_url?: string | null
           title?: string
+          total_marks?: number | null
+          total_questions?: number | null
           updated_at?: string
         }
         Relationships: []

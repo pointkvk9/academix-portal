@@ -34,12 +34,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true);
 
   const fetchUserData = async (userId: string) => {
-    const [{ data: roleData }, { data: profileData }] = await Promise.all([
-      supabase.from("user_roles").select("role").eq("user_id", userId).single(),
-      supabase.from("profiles").select("*").eq("user_id", userId).single(),
-    ]);
-    if (roleData) setRole(roleData.role as UserRole);
-    if (profileData) setProfile(profileData);
+    try {
+      const [{ data: roleData }, { data: profileData }] = await Promise.all([
+        supabase.from("user_roles").select("role").eq("user_id", userId).single(),
+        supabase.from("profiles").select("*").eq("user_id", userId).single(),
+      ]);
+      if (roleData) setRole(roleData.role as UserRole);
+      if (profileData) setProfile(profileData);
+    } catch (err) {
+      console.error("Error fetching user data:", err);
+    }
   };
 
   const refreshProfile = async () => {
@@ -47,20 +51,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   };
 
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        setSession(session);
-        setUser(session?.user ?? null);
-        if (session?.user) {
-          setTimeout(() => fetchUserData(session.user.id), 0);
-        } else {
-          setRole(null);
-          setProfile(null);
-        }
-        setLoading(false);
-      }
-    );
-
+    // First get session, then set up listener
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session);
       setUser(session?.user ?? null);
@@ -70,11 +61,30 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setLoading(false);
     });
 
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        setSession(session);
+        setUser(session?.user ?? null);
+        if (session?.user) {
+          // Use setTimeout to avoid Supabase deadlock
+          setTimeout(() => fetchUserData(session.user.id), 0);
+        } else {
+          setRole(null);
+          setProfile(null);
+        }
+        setLoading(false);
+      }
+    );
+
     return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
-    await supabase.auth.signOut();
+    try {
+      await supabase.auth.signOut();
+    } catch (err) {
+      // Ignore signout errors (e.g. refresh token not found)
+    }
     setUser(null);
     setSession(null);
     setRole(null);
