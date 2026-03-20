@@ -8,15 +8,19 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, UserPlus, LogIn } from "lucide-react";
+import { Shield, UserPlus, LogIn, Eye, EyeOff, Info } from "lucide-react";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "register">("login");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [fullName, setFullName] = useState("");
+  const [fatherName, setFatherName] = useState("");
+  const [mobile, setMobile] = useState("");
   const [studentClass, setStudentClass] = useState("");
+  const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
+  const [showPassword, setShowPassword] = useState(false);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -27,19 +31,23 @@ export default function Auth() {
       toast.error(error.message);
     } else {
       toast.success("Login successful!");
-      navigate("/");
+      navigate("/dashboard");
     }
     setLoading(false);
   };
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !studentClass) {
+    if (!fullName || !studentClass || !mobile || !gender) {
       toast.error("Please fill all required fields");
       return;
     }
+    if (mobile.length !== 10) {
+      toast.error("Mobile number must be 10 digits");
+      return;
+    }
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
+    const { data: signUpData, error } = await supabase.auth.signUp({
       email,
       password,
       options: {
@@ -50,15 +58,18 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      // Update profile with class
-      const { data: { user } } = await supabase.auth.getUser();
-      if (user) {
+      // Update profile with additional details
+      if (signUpData.user) {
         await supabase.from("profiles").update({
           full_name: fullName,
+          father_name: fatherName,
           class: studentClass,
-        }).eq("user_id", user.id);
+          mobile,
+          gender,
+        }).eq("user_id", signUpData.user.id);
       }
-      toast.success("Registration successful! Please check your email to verify your account.");
+      toast.success("Registration successful! You can now login.");
+      setMode("login");
     }
     setLoading(false);
   };
@@ -68,9 +79,9 @@ export default function Auth() {
   return (
     <div className="min-h-screen bg-background">
       <GovtHeader />
-      <div className="flex items-center justify-center py-12 px-4">
-        <Card className="w-full max-w-md shadow-lg border-t-4 border-t-primary">
-          <CardHeader className="text-center">
+      <div className="flex items-center justify-center py-8 px-4">
+        <Card className="w-full max-w-lg shadow-lg border-t-4 border-t-primary">
+          <CardHeader className="text-center pb-4">
             <div className="mx-auto mb-3 flex items-center justify-center w-14 h-14 rounded-full bg-primary/10">
               <Shield className="w-7 h-7 text-primary" />
             </div>
@@ -79,7 +90,7 @@ export default function Auth() {
             </CardTitle>
             <CardDescription>
               {mode === "login"
-                ? "Enter your credentials to access the portal"
+                ? "Enter your credentials to access the examination portal"
                 : "Create your account to apply for examinations"}
             </CardDescription>
           </CardHeader>
@@ -87,20 +98,45 @@ export default function Auth() {
             <form onSubmit={mode === "login" ? handleLogin : handleRegister} className="space-y-4">
               {mode === "register" && (
                 <>
-                  <div className="space-y-2">
-                    <Label htmlFor="fullName">Full Name *</Label>
-                    <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter your full name" required />
+                  <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                    <div className="space-y-2">
+                      <Label htmlFor="fullName">Full Name (as per records) *</Label>
+                      <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter full name" required />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="fatherName">Father's Name</Label>
+                      <Input id="fatherName" value={fatherName} onChange={(e) => setFatherName(e.target.value)} placeholder="Father's name" />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="mobile">Mobile Number *</Label>
+                      <Input id="mobile" value={mobile} onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit mobile" required maxLength={10} />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor="gender">Gender *</Label>
+                      <Select value={gender} onValueChange={setGender}>
+                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectContent>
+                          <SelectItem value="male">Male</SelectItem>
+                          <SelectItem value="female">Female</SelectItem>
+                          <SelectItem value="other">Other</SelectItem>
+                        </SelectContent>
+                      </Select>
+                    </div>
+                    <div className="md:col-span-2 space-y-2">
+                      <Label htmlFor="class">Class *</Label>
+                      <Select value={studentClass} onValueChange={setStudentClass}>
+                        <SelectTrigger><SelectValue placeholder="Select your class" /></SelectTrigger>
+                        <SelectContent>
+                          {classes.map((c) => (
+                            <SelectItem key={c} value={c}>Class {c}</SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
                   </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="class">Class *</Label>
-                    <Select value={studentClass} onValueChange={setStudentClass}>
-                      <SelectTrigger><SelectValue placeholder="Select your class" /></SelectTrigger>
-                      <SelectContent>
-                        {classes.map((c) => (
-                          <SelectItem key={c} value={c}>Class {c}</SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
+                  <div className="bg-info/10 border border-info/30 rounded-md p-3 text-xs text-muted-foreground flex gap-2">
+                    <Info className="h-4 w-4 text-info flex-shrink-0 mt-0.5" />
+                    <span>Enter your name exactly as it appears on your school records. This will appear on your admit card.</span>
                   </div>
                 </>
               )}
@@ -110,9 +146,22 @@ export default function Auth() {
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
-                <Input id="password" type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Enter password" required minLength={6} />
+                <div className="relative">
+                  <Input 
+                    id="password" 
+                    type={showPassword ? "text" : "password"} 
+                    value={password} 
+                    onChange={(e) => setPassword(e.target.value)} 
+                    placeholder="Minimum 6 characters" 
+                    required 
+                    minLength={6} 
+                  />
+                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
+                    {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
               </div>
-              <Button type="submit" className="w-full" disabled={loading}>
+              <Button type="submit" className="w-full" disabled={loading} size="lg">
                 {loading ? "Please wait..." : mode === "login" ? (
                   <><LogIn className="mr-2 h-4 w-4" /> Sign In</>
                 ) : (
@@ -124,14 +173,14 @@ export default function Auth() {
               {mode === "login" ? (
                 <p>
                   Don't have an account?{" "}
-                  <button onClick={() => setMode("register")} className="text-primary font-medium hover:underline">
+                  <button onClick={() => setMode("register")} className="text-primary font-semibold hover:underline">
                     Register here
                   </button>
                 </p>
               ) : (
                 <p>
                   Already have an account?{" "}
-                  <button onClick={() => setMode("login")} className="text-primary font-medium hover:underline">
+                  <button onClick={() => setMode("login")} className="text-primary font-semibold hover:underline">
                     Sign in
                   </button>
                 </p>
