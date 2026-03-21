@@ -7,11 +7,12 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Switch } from "@/components/ui/switch";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Zap, MapPin, Building, Trash2, Users, ChevronDown, ChevronUp } from "lucide-react";
+import { Plus, Zap, MapPin, Building, Trash2, Users, ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft } from "lucide-react";
 
 interface ManageCentersProps {
   exams: any[];
@@ -26,6 +27,9 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
   const [showForm, setShowForm] = useState(false);
   const [generating, setGenerating] = useState(false);
   const [expandedCenter, setExpandedCenter] = useState<string | null>(null);
+  const [admitCards, setAdmitCards] = useState<any[]>([]);
+  const [changeCenterCard, setChangeCenterCard] = useState<any>(null);
+  const [newCenterId, setNewCenterId] = useState("");
   const [form, setForm] = useState({
     center_name: "", center_code: "", address: "", city: "", state: "",
     capacity: "", pincode: "", contact_number: "", contact_email: "",
@@ -39,44 +43,32 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
     if (data) setCenters(data);
   };
 
-  useEffect(() => { fetchCenters(); }, [selectedExamId]);
+  const fetchAdmitCards = async () => {
+    if (!selectedExamId) return;
+    const { data } = await supabase.from("admit_cards").select("*, exam_centers(center_name, center_code, city)").eq("exam_id", selectedExamId);
+    if (data) setAdmitCards(data);
+  };
+
+  useEffect(() => { fetchCenters(); fetchAdmitCards(); }, [selectedExamId]);
 
   const resetForm = () => {
-    setForm({
-      center_name: "", center_code: "", address: "", city: "", state: "",
-      capacity: "", pincode: "", contact_number: "", contact_email: "",
-      center_type: "school", reporting_time: "09:00 AM", gate_closing_time: "09:30 AM",
-      incharge_name: "", landmark: "", is_accessible: true,
-    });
+    setForm({ center_name: "", center_code: "", address: "", city: "", state: "", capacity: "", pincode: "", contact_number: "", contact_email: "", center_type: "school", reporting_time: "09:00 AM", gate_closing_time: "09:30 AM", incharge_name: "", landmark: "", is_accessible: true });
   };
 
   const handleAddCenter = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!selectedExamId) return;
-    if (!form.center_name || !form.capacity || !form.city || !form.state) {
-      toast.error("Please fill all required fields");
-      return;
+    if (!selectedExamId || !form.center_name || !form.capacity || !form.city || !form.state) {
+      toast.error("Fill all required fields"); return;
     }
     const { error } = await supabase.from("exam_centers").insert({
-      center_name: form.center_name,
-      center_code: form.center_code,
-      address: form.address,
-      city: form.city,
-      state: form.state,
-      capacity: parseInt(form.capacity),
-      exam_id: selectedExamId,
-      pincode: form.pincode,
-      contact_number: form.contact_number,
-      contact_email: form.contact_email,
-      center_type: form.center_type,
-      reporting_time: form.reporting_time,
-      gate_closing_time: form.gate_closing_time,
-      incharge_name: form.incharge_name,
-      landmark: form.landmark,
-      is_accessible: form.is_accessible,
+      center_name: form.center_name, center_code: form.center_code, address: form.address,
+      city: form.city, state: form.state, capacity: parseInt(form.capacity), exam_id: selectedExamId,
+      pincode: form.pincode, contact_number: form.contact_number, contact_email: form.contact_email,
+      center_type: form.center_type, reporting_time: form.reporting_time, gate_closing_time: form.gate_closing_time,
+      incharge_name: form.incharge_name, landmark: form.landmark, is_accessible: form.is_accessible,
     } as any);
     if (error) toast.error(error.message);
-    else { toast.success("Center added successfully!"); resetForm(); setShowForm(false); fetchCenters(); }
+    else { toast.success("Center added!"); resetForm(); setShowForm(false); fetchCenters(); }
   };
 
   const handleDeleteCenter = async (id: string) => {
@@ -90,63 +82,85 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
     if (!selectedExamId) return;
     setGenerating(true);
 
+    // Fetch applications with address details for location-based allocation
     const { data: applications } = await supabase
       .from("exam_applications")
-      .select("id, user_id")
+      .select("id, user_id, address_details")
       .eq("exam_id", selectedExamId)
       .eq("is_submitted", true)
       .eq("fee_status", "paid");
 
     if (!applications || applications.length === 0) {
       toast.error("No paid & submitted applications found");
-      setGenerating(false);
-      return;
+      setGenerating(false); return;
     }
 
     const { data: existingCards } = await supabase
       .from("admit_cards").select("user_id").eq("exam_id", selectedExamId);
-    
     const existingUserIds = new Set((existingCards || []).map(c => c.user_id));
     const newApplications = applications.filter(a => !existingUserIds.has(a.user_id));
 
     if (newApplications.length === 0) {
       toast.info("All admit cards already generated");
-      setGenerating(false);
-      return;
+      setGenerating(false); return;
     }
 
-    const sortedCenters = [...centers].sort((a, b) => (b.capacity - b.allocated) - (a.capacity - a.allocated));
-    const admitCards: any[] = [];
-    let rollCounter = 1;
+    // Location-based center allocation
+    const centersCopy = centers.map(c => ({ ...c }));
+    const admitCardsToInsert: any[] = [];
+    let rollCounter = (existingCards?.length || 0) + 1;
 
     for (const app of newApplications) {
-      const center = sortedCenters.find(c => c.allocated < c.capacity);
-      if (!center) {
+      const addr = app.address_details as any;
+      const candidateCity = addr?.city?.toLowerCase() || "";
+      const candidateState = addr?.state?.toLowerCase() || "";
+
+      // Priority: same city > same state > any available
+      let bestCenter = centersCopy.find(c => c.allocated < c.capacity && c.city?.toLowerCase() === candidateCity);
+      if (!bestCenter) bestCenter = centersCopy.find(c => c.allocated < c.capacity && c.state?.toLowerCase() === candidateState);
+      if (!bestCenter) bestCenter = centersCopy.find(c => c.allocated < c.capacity);
+
+      if (!bestCenter) {
         toast.error("Not enough center capacity! Add more centers.");
-        setGenerating(false);
-        return;
+        setGenerating(false); return;
       }
-      admitCards.push({
-        user_id: app.user_id,
-        exam_id: selectedExamId,
-        application_id: app.id,
-        center_id: center.id,
-        roll_number: `${center.center_code || "C"}${String(rollCounter++).padStart(5, "0")}`,
+
+      admitCardsToInsert.push({
+        user_id: app.user_id, exam_id: selectedExamId, application_id: app.id,
+        center_id: bestCenter.id,
+        roll_number: `${bestCenter.center_code || "C"}${String(rollCounter++).padStart(5, "0")}`,
       });
-      center.allocated++;
+      bestCenter.allocated++;
     }
 
-    const { error } = await supabase.from("admit_cards").insert(admitCards);
-    if (error) {
-      toast.error(error.message);
-    } else {
-      for (const center of sortedCenters) {
-        await supabase.from("exam_centers").update({ allocated: center.allocated }).eq("id", center.id);
+    const { error } = await supabase.from("admit_cards").insert(admitCardsToInsert);
+    if (error) { toast.error(error.message); }
+    else {
+      for (const c of centersCopy) {
+        if (c.allocated !== centers.find(oc => oc.id === c.id)?.allocated) {
+          await supabase.from("exam_centers").update({ allocated: c.allocated }).eq("id", c.id);
+        }
       }
-      toast.success(`${admitCards.length} admit cards generated!`);
-      fetchCenters();
+      toast.success(`${admitCardsToInsert.length} admit cards generated (location-based)!`);
+      fetchCenters(); fetchAdmitCards();
     }
     setGenerating(false);
+  };
+
+  const handleChangeCenter = async () => {
+    if (!changeCenterCard || !newCenterId) return;
+    const oldCenterId = changeCenterCard.center_id;
+
+    const { error } = await supabase.from("admit_cards").update({ center_id: newCenterId }).eq("id", changeCenterCard.id);
+    if (error) { toast.error(error.message); return; }
+
+    // Update allocated counts
+    await supabase.from("exam_centers").update({ allocated: Math.max(0, (centers.find(c => c.id === oldCenterId)?.allocated || 1) - 1) }).eq("id", oldCenterId);
+    await supabase.from("exam_centers").update({ allocated: (centers.find(c => c.id === newCenterId)?.allocated || 0) + 1 }).eq("id", newCenterId);
+
+    toast.success("Center changed successfully!");
+    setChangeCenterCard(null); setNewCenterId("");
+    fetchCenters(); fetchAdmitCards();
   };
 
   const totalCapacity = centers.reduce((sum, c) => sum + c.capacity, 0);
@@ -157,15 +171,11 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
       <Card className="border-t-4 border-t-primary">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Exam Centers & Admit Cards</CardTitle>
-          <CardDescription>Add centers, set capacity, and generate admit cards for students</CardDescription>
+          <CardDescription>Add centers, allocate by location, generate admit cards, and change center assignments</CardDescription>
           <Select value={selectedExamId || ""} onValueChange={onSelectExam}>
-            <SelectTrigger className="w-full max-w-sm">
-              <SelectValue placeholder="Select an examination" />
-            </SelectTrigger>
+            <SelectTrigger className="w-full max-w-sm"><SelectValue placeholder="Select an examination" /></SelectTrigger>
             <SelectContent>
-              {exams.map((e) => (
-                <SelectItem key={e.id} value={e.id}>{e.title} (Class {e.class})</SelectItem>
-              ))}
+              {exams.map((e) => <SelectItem key={e.id} value={e.id}>{e.title} (Class {e.class})</SelectItem>)}
             </SelectContent>
           </Select>
         </CardHeader>
@@ -177,144 +187,91 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
             </div>
           ) : (
             <>
-              {/* Stats */}
               {centers.length > 0 && (
-                <div className="grid grid-cols-3 gap-4 mb-6">
+                <div className="grid grid-cols-4 gap-3 mb-6">
                   <div className="bg-primary/5 rounded-md p-3 text-center">
                     <p className="text-2xl font-bold text-primary">{centers.length}</p>
-                    <p className="text-xs text-muted-foreground">Total Centers</p>
+                    <p className="text-xs text-muted-foreground">Centers</p>
                   </div>
                   <div className="bg-info/10 rounded-md p-3 text-center">
                     <p className="text-2xl font-bold text-info">{totalCapacity}</p>
-                    <p className="text-xs text-muted-foreground">Total Capacity</p>
+                    <p className="text-xs text-muted-foreground">Capacity</p>
                   </div>
                   <div className="bg-success/10 rounded-md p-3 text-center">
                     <p className="text-2xl font-bold text-success">{totalAllocated}</p>
                     <p className="text-xs text-muted-foreground">Allocated</p>
                   </div>
+                  <div className="bg-warning/10 rounded-md p-3 text-center">
+                    <p className="text-2xl font-bold text-warning">{admitCards.length}</p>
+                    <p className="text-xs text-muted-foreground">Admit Cards</p>
+                  </div>
                 </div>
               )}
 
               <div className="flex gap-2 mb-4 flex-wrap">
-                <Button variant="outline" onClick={() => setShowForm(!showForm)}>
-                  <Plus className="h-4 w-4 mr-1" /> Add Center
-                </Button>
+                <Button variant="outline" onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4 mr-1" /> Add Center</Button>
                 <Button onClick={handleGenerateAdmitCards} disabled={generating || centers.length === 0}>
-                  <Zap className="h-4 w-4 mr-1" /> {generating ? "Generating..." : "Generate Admit Cards"}
+                  <Zap className="h-4 w-4 mr-1" /> {generating ? "Generating..." : "Generate Admit Cards (Location-Based)"}
                 </Button>
               </div>
 
               {showForm && (
                 <Card className="mb-6 bg-muted/20 border-2 border-dashed border-primary/30">
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-base flex items-center gap-2">
-                      <Building className="h-4 w-4" /> New Center Details
-                    </CardTitle>
-                  </CardHeader>
+                  <CardHeader className="pb-2"><CardTitle className="text-base flex items-center gap-2"><Building className="h-4 w-4" /> New Center</CardTitle></CardHeader>
                   <CardContent>
                     <form onSubmit={handleAddCenter} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Center Name *</Label>
-                          <Input value={form.center_name} onChange={(e) => setForm({ ...form, center_name: e.target.value })} placeholder="e.g. Govt. Higher Secondary School" required />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Center Code *</Label>
-                          <Input value={form.center_code} onChange={(e) => setForm({ ...form, center_code: e.target.value })} placeholder="e.g. DL001" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Center Type</Label>
+                        <div className="space-y-1"><Label className="text-xs">Center Name *</Label><Input value={form.center_name} onChange={(e) => setForm({ ...form, center_name: e.target.value })} required /></div>
+                        <div className="space-y-1"><Label className="text-xs">Center Code</Label><Input value={form.center_code} onChange={(e) => setForm({ ...form, center_code: e.target.value })} placeholder="e.g. DL001" /></div>
+                        <div className="space-y-1"><Label className="text-xs">Type</Label>
                           <Select value={form.center_type} onValueChange={(v) => setForm({ ...form, center_type: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="school">School</SelectItem>
-                              <SelectItem value="college">College</SelectItem>
-                              <SelectItem value="university">University</SelectItem>
-                              <SelectItem value="institute">Institute</SelectItem>
-                              <SelectItem value="community_hall">Community Hall</SelectItem>
+                              <SelectItem value="school">School</SelectItem><SelectItem value="college">College</SelectItem><SelectItem value="university">University</SelectItem><SelectItem value="institute">Institute</SelectItem><SelectItem value="community_hall">Community Hall</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Capacity *</Label>
-                          <Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} placeholder="e.g. 200" required />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Incharge Name</Label>
-                          <Input value={form.incharge_name} onChange={(e) => setForm({ ...form, incharge_name: e.target.value })} placeholder="Center incharge" />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Contact Number</Label>
-                          <Input value={form.contact_number} onChange={(e) => setForm({ ...form, contact_number: e.target.value })} placeholder="Phone number" />
-                        </div>
+                        <div className="space-y-1"><Label className="text-xs">Capacity *</Label><Input type="number" value={form.capacity} onChange={(e) => setForm({ ...form, capacity: e.target.value })} required /></div>
+                        <div className="space-y-1"><Label className="text-xs">Incharge</Label><Input value={form.incharge_name} onChange={(e) => setForm({ ...form, incharge_name: e.target.value })} /></div>
+                        <div className="space-y-1"><Label className="text-xs">Contact</Label><Input value={form.contact_number} onChange={(e) => setForm({ ...form, contact_number: e.target.value })} /></div>
+                        <div className="space-y-1"><Label className="text-xs">Email</Label><Input value={form.contact_email} onChange={(e) => setForm({ ...form, contact_email: e.target.value })} /></div>
                       </div>
-
                       <Separator />
-
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="md:col-span-2 space-y-1">
-                          <Label className="text-xs">Full Address *</Label>
-                          <Textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} placeholder="Complete address" rows={2} />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Landmark</Label>
-                          <Input value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} placeholder="Near/Opposite..." />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">City *</Label>
-                          <Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required />
-                        </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">State *</Label>
+                        <div className="md:col-span-2 space-y-1"><Label className="text-xs">Address *</Label><Textarea value={form.address} onChange={(e) => setForm({ ...form, address: e.target.value })} rows={2} /></div>
+                        <div className="space-y-1"><Label className="text-xs">Landmark</Label><Input value={form.landmark} onChange={(e) => setForm({ ...form, landmark: e.target.value })} /></div>
+                        <div className="space-y-1"><Label className="text-xs">City *</Label><Input value={form.city} onChange={(e) => setForm({ ...form, city: e.target.value })} required /></div>
+                        <div className="space-y-1"><Label className="text-xs">State *</Label>
                           <Select value={form.state} onValueChange={(v) => setForm({ ...form, state: v })}>
                             <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
-                            <SelectContent>
-                              {INDIAN_STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}
-                            </SelectContent>
+                            <SelectContent>{INDIAN_STATES.map((s) => <SelectItem key={s} value={s}>{s}</SelectItem>)}</SelectContent>
                           </Select>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Pincode</Label>
-                          <Input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} maxLength={6} />
-                        </div>
+                        <div className="space-y-1"><Label className="text-xs">Pincode</Label><Input value={form.pincode} onChange={(e) => setForm({ ...form, pincode: e.target.value.replace(/\D/g, "").slice(0, 6) })} maxLength={6} /></div>
                       </div>
-
                       <Separator />
-
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                        <div className="space-y-1">
-                          <Label className="text-xs">Reporting Time</Label>
+                        <div className="space-y-1"><Label className="text-xs">Reporting Time</Label>
                           <Select value={form.reporting_time} onValueChange={(v) => setForm({ ...form, reporting_time: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="08:00 AM">08:00 AM</SelectItem>
-                              <SelectItem value="08:30 AM">08:30 AM</SelectItem>
-                              <SelectItem value="09:00 AM">09:00 AM</SelectItem>
-                              <SelectItem value="09:30 AM">09:30 AM</SelectItem>
-                              <SelectItem value="01:00 PM">01:00 PM</SelectItem>
-                              <SelectItem value="01:30 PM">01:30 PM</SelectItem>
+                              <SelectItem value="08:00 AM">08:00 AM</SelectItem><SelectItem value="08:30 AM">08:30 AM</SelectItem><SelectItem value="09:00 AM">09:00 AM</SelectItem><SelectItem value="09:30 AM">09:30 AM</SelectItem><SelectItem value="01:00 PM">01:00 PM</SelectItem><SelectItem value="01:30 PM">01:30 PM</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
-                        <div className="space-y-1">
-                          <Label className="text-xs">Gate Closing Time</Label>
+                        <div className="space-y-1"><Label className="text-xs">Gate Closing</Label>
                           <Select value={form.gate_closing_time} onValueChange={(v) => setForm({ ...form, gate_closing_time: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="09:00 AM">09:00 AM</SelectItem>
-                              <SelectItem value="09:30 AM">09:30 AM</SelectItem>
-                              <SelectItem value="10:00 AM">10:00 AM</SelectItem>
-                              <SelectItem value="02:00 PM">02:00 PM</SelectItem>
-                              <SelectItem value="02:30 PM">02:30 PM</SelectItem>
+                              <SelectItem value="09:00 AM">09:00 AM</SelectItem><SelectItem value="09:30 AM">09:30 AM</SelectItem><SelectItem value="10:00 AM">10:00 AM</SelectItem><SelectItem value="02:00 PM">02:00 PM</SelectItem><SelectItem value="02:30 PM">02:30 PM</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
                         <div className="flex items-center gap-3 pt-4">
                           <Switch checked={form.is_accessible} onCheckedChange={(v) => setForm({ ...form, is_accessible: v })} />
-                          <Label className="text-xs">Accessible (PwD Friendly)</Label>
+                          <Label className="text-xs">PwD Accessible</Label>
                         </div>
                       </div>
-
                       <div className="flex gap-2 pt-2">
                         <Button type="submit">Save Center</Button>
                         <Button type="button" variant="ghost" onClick={() => { setShowForm(false); resetForm(); }}>Cancel</Button>
@@ -324,27 +281,21 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
                 </Card>
               )}
 
+              {/* Centers List */}
               {centers.length > 0 ? (
-                <div className="space-y-2">
+                <div className="space-y-2 mb-6">
                   {centers.map((c) => (
                     <Card key={c.id} className="overflow-hidden">
-                      <div 
-                        className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors"
-                        onClick={() => setExpandedCenter(expandedCenter === c.id ? null : c.id)}
-                      >
+                      <div className="flex items-center justify-between p-4 cursor-pointer hover:bg-muted/50 transition-colors" onClick={() => setExpandedCenter(expandedCenter === c.id ? null : c.id)}>
                         <div className="flex items-center gap-3">
-                          <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center">
-                            <Building className="h-5 w-5 text-primary" />
-                          </div>
+                          <div className="w-10 h-10 rounded-md bg-primary/10 flex items-center justify-center"><Building className="h-5 w-5 text-primary" /></div>
                           <div>
                             <p className="font-medium text-sm">{c.center_name}</p>
                             <p className="text-xs text-muted-foreground">{c.center_code || "—"} • {c.city}, {c.state}</p>
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge variant={c.allocated >= c.capacity ? "destructive" : "secondary"}>
-                            <Users className="h-3 w-3 mr-1" />{c.allocated}/{c.capacity}
-                          </Badge>
+                          <Badge variant={c.allocated >= c.capacity ? "destructive" : "secondary"}><Users className="h-3 w-3 mr-1" />{c.allocated}/{c.capacity}</Badge>
                           {expandedCenter === c.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </div>
                       </div>
@@ -357,30 +308,97 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
                             <div><span className="text-muted-foreground">Incharge:</span> {c.incharge_name || "—"}</div>
                             <div><span className="text-muted-foreground">Reporting:</span> {c.reporting_time || "—"}</div>
                             <div><span className="text-muted-foreground">Gate Close:</span> {c.gate_closing_time || "—"}</div>
-                            <div><span className="text-muted-foreground">Accessible:</span> {c.is_accessible ? "Yes" : "No"}</div>
+                            <div><span className="text-muted-foreground">Accessible:</span> {c.is_accessible ? "Yes ♿" : "No"}</div>
                             <div><span className="text-muted-foreground">Landmark:</span> {c.landmark || "—"}</div>
                           </div>
                           {c.address && <p className="text-xs"><span className="text-muted-foreground">Address:</span> {c.address}</p>}
-                          <div className="flex justify-end">
-                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCenter(c.id)}>
-                              <Trash2 className="h-3 w-3 mr-1" /> Delete
-                            </Button>
-                          </div>
+                          <div className="flex justify-end"><Button size="sm" variant="destructive" onClick={() => handleDeleteCenter(c.id)}><Trash2 className="h-3 w-3 mr-1" /> Delete</Button></div>
                         </div>
                       )}
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8">
+                <div className="text-center py-8 mb-6">
                   <Building className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                  <p className="text-muted-foreground text-sm">No centers added yet. Click "Add Center" to get started.</p>
+                  <p className="text-muted-foreground text-sm">No centers added yet.</p>
                 </div>
+              )}
+
+              {/* Admit Card Assignments - Change Center */}
+              {admitCards.length > 0 && (
+                <Card>
+                  <CardHeader className="pb-2">
+                    <CardTitle className="text-sm flex items-center gap-2"><ArrowRightLeft className="h-4 w-4 text-primary" /> Candidate Center Assignments ({admitCards.length})</CardTitle>
+                    <CardDescription className="text-xs">View and change center assignments for candidates</CardDescription>
+                  </CardHeader>
+                  <CardContent>
+                    <div className="overflow-x-auto rounded-md border">
+                      <Table>
+                        <TableHeader>
+                          <TableRow className="bg-muted/50">
+                            <TableHead className="text-xs">#</TableHead>
+                            <TableHead className="text-xs">Roll No.</TableHead>
+                            <TableHead className="text-xs">Center</TableHead>
+                            <TableHead className="text-xs">City</TableHead>
+                            <TableHead className="text-xs">Action</TableHead>
+                          </TableRow>
+                        </TableHeader>
+                        <TableBody>
+                          {admitCards.map((ac, i) => (
+                            <TableRow key={ac.id}>
+                              <TableCell className="text-xs">{i + 1}</TableCell>
+                              <TableCell className="text-xs font-mono font-bold">{ac.roll_number}</TableCell>
+                              <TableCell className="text-xs">{(ac.exam_centers as any)?.center_name || "—"}</TableCell>
+                              <TableCell className="text-xs">{(ac.exam_centers as any)?.city || "—"}</TableCell>
+                              <TableCell>
+                                <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setChangeCenterCard(ac); setNewCenterId(""); }}>
+                                  <RefreshCw className="h-3 w-3 mr-1" /> Change
+                                </Button>
+                              </TableCell>
+                            </TableRow>
+                          ))}
+                        </TableBody>
+                      </Table>
+                    </div>
+                  </CardContent>
+                </Card>
               )}
             </>
           )}
         </CardContent>
       </Card>
+
+      {/* Change Center Dialog */}
+      <Dialog open={!!changeCenterCard} onOpenChange={() => setChangeCenterCard(null)}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Change Center for Roll #{changeCenterCard?.roll_number}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4">
+            <p className="text-sm text-muted-foreground">
+              Current: <strong>{centers.find(c => c.id === changeCenterCard?.center_id)?.center_name || "—"}</strong>
+            </p>
+            <div className="space-y-2">
+              <Label>New Center</Label>
+              <Select value={newCenterId} onValueChange={setNewCenterId}>
+                <SelectTrigger><SelectValue placeholder="Select new center" /></SelectTrigger>
+                <SelectContent>
+                  {centers.filter(c => c.id !== changeCenterCard?.center_id).map(c => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.center_name} — {c.city} ({c.allocated}/{c.capacity})
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setChangeCenterCard(null)}>Cancel</Button>
+            <Button onClick={handleChangeCenter} disabled={!newCenterId}>Confirm Change</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
