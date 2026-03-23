@@ -9,6 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
 import { Shield, UserPlus, LogIn, Eye, EyeOff, Info } from "lucide-react";
+import { GROUPS } from "@/lib/groups";
 
 export default function Auth() {
   const [mode, setMode] = useState<"login" | "register">("login");
@@ -17,7 +18,7 @@ export default function Auth() {
   const [fullName, setFullName] = useState("");
   const [fatherName, setFatherName] = useState("");
   const [mobile, setMobile] = useState("");
-  const [studentClass, setStudentClass] = useState("");
+  const [studentGroup, setStudentGroup] = useState("");
   const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
@@ -38,7 +39,7 @@ export default function Auth() {
 
   const handleRegister = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!fullName || !studentClass || !mobile || !gender) {
+    if (!fullName || !studentGroup || !mobile || !gender) {
       toast.error("Please fill all required fields");
       return;
     }
@@ -58,12 +59,11 @@ export default function Auth() {
     if (error) {
       toast.error(error.message);
     } else {
-      // Update profile with additional details
       if (signUpData.user) {
         await supabase.from("profiles").update({
           full_name: fullName,
           father_name: fatherName,
-          class: studentClass,
+          class: studentGroup,
           mobile,
           gender,
         }).eq("user_id", signUpData.user.id);
@@ -73,8 +73,6 @@ export default function Auth() {
     }
     setLoading(false);
   };
-
-  const classes = ["1", "2", "3", "4", "5", "6", "7", "8", "9", "10", "11", "12"];
 
   return (
     <div className="min-h-screen bg-background">
@@ -86,7 +84,7 @@ export default function Auth() {
               <Shield className="w-7 h-7 text-primary" />
             </div>
             <CardTitle className="text-xl">
-              {mode === "login" ? "Student / Admin Login" : "Student Registration"}
+              {mode === "login" ? "Student / Admin Login" : "Student Registration (पंजीकरण)"}
             </CardTitle>
             <CardDescription>
               {mode === "login"
@@ -100,11 +98,11 @@ export default function Auth() {
                 <>
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
-                      <Label htmlFor="fullName">Full Name (as per records) *</Label>
+                      <Label htmlFor="fullName">Full Name (पूरा नाम) *</Label>
                       <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter full name" required />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="fatherName">Father's Name</Label>
+                      <Label htmlFor="fatherName">Father's Name (पिता का नाम)</Label>
                       <Input id="fatherName" value={fatherName} onChange={(e) => setFatherName(e.target.value)} placeholder="Father's name" />
                     </div>
                     <div className="space-y-2">
@@ -112,30 +110,30 @@ export default function Auth() {
                       <Input id="mobile" value={mobile} onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit mobile" required maxLength={10} />
                     </div>
                     <div className="space-y-2">
-                      <Label htmlFor="gender">Gender *</Label>
+                      <Label htmlFor="gender">Gender (लिंग) *</Label>
                       <Select value={gender} onValueChange={setGender}>
                         <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
                         <SelectContent>
-                          <SelectItem value="male">Male</SelectItem>
-                          <SelectItem value="female">Female</SelectItem>
-                          <SelectItem value="other">Other</SelectItem>
+                          <SelectItem value="male">Male (पुरुष)</SelectItem>
+                          <SelectItem value="female">Female (महिला)</SelectItem>
+                          <SelectItem value="other">Other (अन्य)</SelectItem>
                         </SelectContent>
                       </Select>
                     </div>
                     <div className="md:col-span-2 space-y-2">
-                      <Label htmlFor="class">Class *</Label>
-                      <Select value={studentClass} onValueChange={setStudentClass}>
-                        <SelectTrigger><SelectValue placeholder="Select your class" /></SelectTrigger>
+                      <Label htmlFor="group">Group (समूह) *</Label>
+                      <Select value={studentGroup} onValueChange={setStudentGroup}>
+                        <SelectTrigger><SelectValue placeholder="Select your group" /></SelectTrigger>
                         <SelectContent>
-                          {classes.map((c) => (
-                            <SelectItem key={c} value={c}>Class {c}</SelectItem>
+                          {GROUPS.map((g) => (
+                            <SelectItem key={g.value} value={g.value}>{g.label} — {g.classes}</SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
                     </div>
                   </div>
-                  <div className="bg-info/10 border border-info/30 rounded-md p-3 text-xs text-muted-foreground flex gap-2">
-                    <Info className="h-4 w-4 text-info flex-shrink-0 mt-0.5" />
+                  <div className="bg-accent/10 border border-accent/30 rounded-md p-3 text-xs text-muted-foreground flex gap-2">
+                    <Info className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
                     <span>Enter your name exactly as it appears on your school records. This will appear on your admit card.</span>
                   </div>
                 </>
@@ -165,7 +163,7 @@ export default function Auth() {
                 {loading ? "Please wait..." : mode === "login" ? (
                   <><LogIn className="mr-2 h-4 w-4" /> Sign In</>
                 ) : (
-                  <><UserPlus className="mr-2 h-4 w-4" /> Register</>
+                  <><UserPlus className="mr-2 h-4 w-4" /> Register (पंजीकरण)</>
                 )}
               </Button>
             </form>

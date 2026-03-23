@@ -13,6 +13,7 @@ import { ApplicationReceipt } from "@/components/student/ApplicationReceipt";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { LogOut, FileText, CreditCard, BookOpen, Calendar, Clock, IndianRupee, User, AlertCircle, Eye, ArrowUpDown } from "lucide-react";
 import { useNavigate } from "react-router-dom";
+import { getGroupLabel, getGroupClasses } from "@/lib/groups";
 
 export default function StudentDashboard() {
   const { signOut, profile, user } = useAuth();
@@ -26,16 +27,17 @@ export default function StudentDashboard() {
   useEffect(() => {
     if (!user || !profile) return;
 
+    // Match exams by group (stored in profile.class)
     supabase.from("exams").select("*").eq("class", profile.class).eq("is_active", true)
       .order("created_at", { ascending: false })
       .then(({ data }) => setExams(data || []));
 
-    supabase.from("exam_applications").select("*, exams(title, exam_date, fee_amount, class, duration_minutes, exam_time, exam_type, subjects, total_marks)")
+    supabase.from("exam_applications").select("*, exams(title, exam_date, fee_amount, class, duration_minutes, exam_time, exam_type, subjects, total_marks, instructions)")
       .eq("user_id", user.id)
       .then(({ data }) => setApplications(data || []));
 
     supabase.from("admit_cards")
-      .select("*, exams(title, exam_date, exam_time, duration_minutes, subjects, total_marks, exam_type, exam_pattern), exam_centers(center_name, center_code, address, city, state, pincode, reporting_time, gate_closing_time)")
+      .select("*, exams(title, exam_date, exam_time, duration_minutes, subjects, total_marks, exam_type, exam_pattern, instructions), exam_centers(center_name, center_code, address, city, state, pincode, reporting_time, gate_closing_time)")
       .eq("user_id", user.id)
       .then(({ data }) => setAdmitCards(data || []));
   }, [user, profile]);
@@ -58,7 +60,7 @@ export default function StudentDashboard() {
       <div className="bg-primary/5 border-b px-4 py-3">
         <div className="container mx-auto flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden">
+            <div className="w-10 h-10 rounded-full bg-primary/10 flex items-center justify-center overflow-hidden border-2 border-primary/20">
               {profile?.photo_url ? (
                 <img src={profile.photo_url} alt="" className="w-full h-full object-cover" />
               ) : (
@@ -67,19 +69,17 @@ export default function StudentDashboard() {
             </div>
             <div>
               <p className="text-sm font-semibold text-foreground">{profile?.full_name}</p>
-              <p className="text-xs text-muted-foreground">Class {profile?.class} | {user?.email}</p>
+              <p className="text-xs text-muted-foreground">{getGroupLabel(profile?.class || "")} ({getGroupClasses(profile?.class || "")}) | {user?.email}</p>
             </div>
           </div>
-          <Button variant="outline" size="sm" onClick={signOut}>
-            <LogOut className="mr-1 h-3 w-3" /> Logout
-          </Button>
+          <Button variant="outline" size="sm" onClick={signOut}><LogOut className="mr-1 h-3 w-3" /> Logout</Button>
         </div>
       </div>
 
       {exams.length > 0 && (
-        <div className="bg-info/10 border-b border-info/20 px-4 py-2">
-          <p className="container mx-auto text-xs text-center font-medium">
-            📋 {exams.length} examination(s) available for your class — Apply before the last date!
+        <div className="bg-accent/10 border-b border-accent/20 px-4 py-2">
+          <p className="container mx-auto text-xs text-center font-bold text-accent">
+            📋 {exams.length} examination(s) available for your group — Apply before the last date!
           </p>
         </div>
       )}
@@ -94,18 +94,12 @@ export default function StudentDashboard() {
 
           <TabsContent value="exams">
             {exams.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-                  <p className="text-muted-foreground">No examinations available for Class {profile?.class} right now.</p>
-                </CardContent>
-              </Card>
+              <Card><CardContent className="py-12 text-center"><BookOpen className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-muted-foreground">No examinations available for {getGroupLabel(profile?.class || "")} right now.</p></CardContent></Card>
             ) : (
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 {exams.map((exam) => {
                   const app = getApplication(exam.id);
                   const isExpired = exam.last_date_to_apply && new Date(exam.last_date_to_apply) < new Date();
-
                   return (
                     <Card key={exam.id} className={`overflow-hidden hover:shadow-md transition-shadow ${isExpired && !app ? "opacity-60" : ""}`}>
                       <div className={`h-1.5 ${exam.is_active ? "bg-primary" : "bg-muted"}`} />
@@ -113,7 +107,7 @@ export default function StudentDashboard() {
                         <div className="flex items-start justify-between">
                           <div>
                             <CardTitle className="text-base">{exam.title}</CardTitle>
-                            <CardDescription>Class {exam.class} | {exam.academic_year || "—"}</CardDescription>
+                            <CardDescription>{getGroupLabel(exam.class)} | {exam.academic_year || "—"}</CardDescription>
                           </div>
                           {app?.is_submitted && <Badge className="bg-success text-success-foreground">Submitted</Badge>}
                           {app && !app.is_submitted && <Badge variant="outline">Step {app.current_step}/6</Badge>}
@@ -127,15 +121,8 @@ export default function StudentDashboard() {
                           <div className="flex items-center gap-1.5"><IndianRupee className="h-3 w-3 text-muted-foreground" /><span>Fee: <strong>₹{exam.fee_amount}</strong></span></div>
                         </div>
                         {exam.last_date_to_apply && (
-                          <div className={`text-xs flex items-center gap-1 ${isExpired ? "text-destructive" : "text-warning"}`}>
+                          <div className={`text-xs flex items-center gap-1 ${isExpired ? "text-destructive" : "text-accent"}`}>
                             <AlertCircle className="h-3 w-3" /> Last Date: {exam.last_date_to_apply} {isExpired ? "(Expired)" : ""}
-                          </div>
-                        )}
-                        {exam.subjects && (exam.subjects as string[]).length > 0 && (
-                          <div className="flex flex-wrap gap-1">
-                            {(exam.subjects as string[]).map((s: string, i: number) => (
-                              <Badge key={i} variant="secondary" className="text-[10px]">{s}</Badge>
-                            ))}
                           </div>
                         )}
                         <Separator />
@@ -149,9 +136,7 @@ export default function StudentDashboard() {
                               {!app.is_submitted ? (
                                 <Button size="sm" onClick={() => navigate(`/apply/${exam.id}`)}>Continue →</Button>
                               ) : (
-                                <Button size="sm" variant="outline" onClick={() => setReceiptApp(app)}>
-                                  <Eye className="h-3 w-3 mr-1" /> View Receipt
-                                </Button>
+                                <Button size="sm" variant="outline" onClick={() => setReceiptApp(app)}><Eye className="h-3 w-3 mr-1" /> View Receipt</Button>
                               )}
                             </div>
                           ) : (
@@ -170,23 +155,15 @@ export default function StudentDashboard() {
 
           <TabsContent value="applications">
             {applications.length === 0 ? (
-              <Card>
-                <CardContent className="py-12 text-center">
-                  <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-                  <p className="text-muted-foreground">No applications yet.</p>
-                </CardContent>
-              </Card>
+              <Card><CardContent className="py-12 text-center"><FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-muted-foreground">No applications yet.</p></CardContent></Card>
             ) : (
               <div className="space-y-4">
-                {/* Sort controls */}
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">Showing {applications.length} application(s)</p>
                   <div className="flex items-center gap-2">
                     <ArrowUpDown className="h-4 w-4 text-muted-foreground" />
                     <Select value={sortBy} onValueChange={setSortBy}>
-                      <SelectTrigger className="w-[160px] h-8 text-xs">
-                        <SelectValue />
-                      </SelectTrigger>
+                      <SelectTrigger className="w-[160px] h-8 text-xs"><SelectValue /></SelectTrigger>
                       <SelectContent>
                         <SelectItem value="newest">Newest First</SelectItem>
                         <SelectItem value="oldest">Oldest First</SelectItem>
@@ -196,27 +173,21 @@ export default function StudentDashboard() {
                     </Select>
                   </div>
                 </div>
-
                 <div className="space-y-3">
                   {sortedApplications.map((app) => (
                     <Card key={app.id} className="overflow-hidden">
-                      <div className={`h-1 ${app.is_submitted ? "bg-success" : "bg-warning"}`} />
+                      <div className={`h-1 ${app.is_submitted ? "bg-success" : "bg-accent"}`} />
                       <CardContent className="py-4">
                         <div className="flex items-center justify-between flex-wrap gap-3">
                           <div>
                             <p className="font-semibold text-sm">{(app.exams as any)?.title}</p>
                             <div className="flex items-center gap-3 text-xs text-muted-foreground mt-1">
-                              <span>Class {(app.exams as any)?.class}</span>
+                              <span>{getGroupLabel((app.exams as any)?.class)}</span>
                               <span>•</span>
                               <span>Fee: {app.fee_status === "paid" ? "✓ Paid" : "Pending"}</span>
                               <span>•</span>
                               <span>Progress: {app.current_step}/6</span>
-                              {app.submitted_at && (
-                                <>
-                                  <span>•</span>
-                                  <span>Submitted: {new Date(app.submitted_at).toLocaleDateString("en-IN")}</span>
-                                </>
-                              )}
+                              {app.submitted_at && (<><span>•</span><span>Submitted: {new Date(app.submitted_at).toLocaleDateString("en-IN")}</span></>)}
                             </div>
                             <p className="text-[10px] text-muted-foreground mt-1 font-mono">App ID: {app.id.slice(0, 8).toUpperCase()}</p>
                           </div>
@@ -225,9 +196,7 @@ export default function StudentDashboard() {
                               {app.is_submitted ? "✓ Submitted" : "In Progress"}
                             </Badge>
                             {app.is_submitted ? (
-                              <Button size="sm" variant="outline" onClick={() => setReceiptApp(app)}>
-                                <Eye className="h-3 w-3 mr-1" /> Receipt
-                              </Button>
+                              <Button size="sm" variant="outline" onClick={() => setReceiptApp(app)}><Eye className="h-3 w-3 mr-1" /> Receipt</Button>
                             ) : (
                               <Button size="sm" onClick={() => navigate(`/apply/${app.exam_id}`)}>Continue →</Button>
                             )}
@@ -247,12 +216,9 @@ export default function StudentDashboard() {
         </Tabs>
       </div>
 
-      {/* Application Receipt Dialog */}
       <Dialog open={!!receiptApp} onOpenChange={() => setReceiptApp(null)}>
         <DialogContent className="max-w-3xl max-h-[90vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Application Confirmation Receipt</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Application Confirmation Receipt</DialogTitle></DialogHeader>
           {receiptApp && <ApplicationReceipt application={receiptApp} profile={profile} />}
         </DialogContent>
       </Dialog>
