@@ -10,9 +10,9 @@ import { Switch } from "@/components/ui/switch";
 import { Badge } from "@/components/ui/badge";
 import { Separator } from "@/components/ui/separator";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { toast } from "sonner";
-import { Plus, Zap, MapPin, Building, Trash2, Users, ChevronDown, ChevronUp, RefreshCw, ArrowRightLeft } from "lucide-react";
+import { Plus, Zap, MapPin, Building, Trash2, Users, ChevronDown, ChevronUp, ArrowRightLeft } from "lucide-react";
+import { getGroupLabel } from "@/lib/groups";
 
 interface ManageCentersProps {
   exams: any[];
@@ -81,31 +81,14 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
   const handleGenerateAdmitCards = async () => {
     if (!selectedExamId) return;
     setGenerating(true);
+    const { data: applications } = await supabase.from("exam_applications").select("id, user_id, address_details").eq("exam_id", selectedExamId).eq("is_submitted", true).eq("fee_status", "paid");
+    if (!applications || applications.length === 0) { toast.error("No paid & submitted applications found"); setGenerating(false); return; }
 
-    // Fetch applications with address details for location-based allocation
-    const { data: applications } = await supabase
-      .from("exam_applications")
-      .select("id, user_id, address_details")
-      .eq("exam_id", selectedExamId)
-      .eq("is_submitted", true)
-      .eq("fee_status", "paid");
-
-    if (!applications || applications.length === 0) {
-      toast.error("No paid & submitted applications found");
-      setGenerating(false); return;
-    }
-
-    const { data: existingCards } = await supabase
-      .from("admit_cards").select("user_id").eq("exam_id", selectedExamId);
+    const { data: existingCards } = await supabase.from("admit_cards").select("user_id").eq("exam_id", selectedExamId);
     const existingUserIds = new Set((existingCards || []).map(c => c.user_id));
     const newApplications = applications.filter(a => !existingUserIds.has(a.user_id));
+    if (newApplications.length === 0) { toast.info("All admit cards already generated"); setGenerating(false); return; }
 
-    if (newApplications.length === 0) {
-      toast.info("All admit cards already generated");
-      setGenerating(false); return;
-    }
-
-    // Location-based center allocation
     const centersCopy = centers.map(c => ({ ...c }));
     const admitCardsToInsert: any[] = [];
     let rollCounter = (existingCards?.length || 0) + 1;
@@ -114,16 +97,10 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
       const addr = app.address_details as any;
       const candidateCity = addr?.city?.toLowerCase() || "";
       const candidateState = addr?.state?.toLowerCase() || "";
-
-      // Priority: same city > same state > any available
       let bestCenter = centersCopy.find(c => c.allocated < c.capacity && c.city?.toLowerCase() === candidateCity);
       if (!bestCenter) bestCenter = centersCopy.find(c => c.allocated < c.capacity && c.state?.toLowerCase() === candidateState);
       if (!bestCenter) bestCenter = centersCopy.find(c => c.allocated < c.capacity);
-
-      if (!bestCenter) {
-        toast.error("Not enough center capacity! Add more centers.");
-        setGenerating(false); return;
-      }
+      if (!bestCenter) { toast.error("Not enough center capacity!"); setGenerating(false); return; }
 
       admitCardsToInsert.push({
         user_id: app.user_id, exam_id: selectedExamId, application_id: app.id,
@@ -141,7 +118,7 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
           await supabase.from("exam_centers").update({ allocated: c.allocated }).eq("id", c.id);
         }
       }
-      toast.success(`${admitCardsToInsert.length} admit cards generated (location-based)!`);
+      toast.success(`${admitCardsToInsert.length} admit cards generated!`);
       fetchCenters(); fetchAdmitCards();
     }
     setGenerating(false);
@@ -150,16 +127,11 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
   const handleChangeCenter = async () => {
     if (!changeCenterCard || !newCenterId) return;
     const oldCenterId = changeCenterCard.center_id;
-
     const { error } = await supabase.from("admit_cards").update({ center_id: newCenterId }).eq("id", changeCenterCard.id);
     if (error) { toast.error(error.message); return; }
-
-    // Update allocated counts
     await supabase.from("exam_centers").update({ allocated: Math.max(0, (centers.find(c => c.id === oldCenterId)?.allocated || 1) - 1) }).eq("id", oldCenterId);
     await supabase.from("exam_centers").update({ allocated: (centers.find(c => c.id === newCenterId)?.allocated || 0) + 1 }).eq("id", newCenterId);
-
-    toast.success("Center changed successfully!");
-    setChangeCenterCard(null); setNewCenterId("");
+    toast.success("Center changed!"); setChangeCenterCard(null); setNewCenterId("");
     fetchCenters(); fetchAdmitCards();
   };
 
@@ -171,47 +143,32 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
       <Card className="border-t-4 border-t-primary">
         <CardHeader>
           <CardTitle className="flex items-center gap-2"><MapPin className="h-5 w-5 text-primary" /> Exam Centers & Admit Cards</CardTitle>
-          <CardDescription>Add centers, allocate by location, generate admit cards, and change center assignments</CardDescription>
+          <CardDescription>Add centers, allocate by location, generate admit cards</CardDescription>
           <Select value={selectedExamId || ""} onValueChange={onSelectExam}>
             <SelectTrigger className="w-full max-w-sm"><SelectValue placeholder="Select an examination" /></SelectTrigger>
             <SelectContent>
-              {exams.map((e) => <SelectItem key={e.id} value={e.id}>{e.title} (Class {e.class})</SelectItem>)}
+              {exams.map((e) => <SelectItem key={e.id} value={e.id}>{e.title} ({getGroupLabel(e.class)})</SelectItem>)}
             </SelectContent>
           </Select>
         </CardHeader>
         <CardContent>
           {!selectedExamId ? (
-            <div className="text-center py-12">
-              <MapPin className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-              <p className="text-muted-foreground">Select an exam to manage centers</p>
-            </div>
+            <div className="text-center py-12"><MapPin className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-muted-foreground">Select an exam to manage centers</p></div>
           ) : (
             <>
               {centers.length > 0 && (
                 <div className="grid grid-cols-4 gap-3 mb-6">
-                  <div className="bg-primary/5 rounded-md p-3 text-center">
-                    <p className="text-2xl font-bold text-primary">{centers.length}</p>
-                    <p className="text-xs text-muted-foreground">Centers</p>
-                  </div>
-                  <div className="bg-info/10 rounded-md p-3 text-center">
-                    <p className="text-2xl font-bold text-info">{totalCapacity}</p>
-                    <p className="text-xs text-muted-foreground">Capacity</p>
-                  </div>
-                  <div className="bg-success/10 rounded-md p-3 text-center">
-                    <p className="text-2xl font-bold text-success">{totalAllocated}</p>
-                    <p className="text-xs text-muted-foreground">Allocated</p>
-                  </div>
-                  <div className="bg-warning/10 rounded-md p-3 text-center">
-                    <p className="text-2xl font-bold text-warning">{admitCards.length}</p>
-                    <p className="text-xs text-muted-foreground">Admit Cards</p>
-                  </div>
+                  <div className="bg-primary/5 rounded-md p-3 text-center"><p className="text-2xl font-bold text-primary">{centers.length}</p><p className="text-xs text-muted-foreground">Centers</p></div>
+                  <div className="bg-info/10 rounded-md p-3 text-center"><p className="text-2xl font-bold text-info">{totalCapacity}</p><p className="text-xs text-muted-foreground">Capacity</p></div>
+                  <div className="bg-success/10 rounded-md p-3 text-center"><p className="text-2xl font-bold text-success">{totalAllocated}</p><p className="text-xs text-muted-foreground">Allocated</p></div>
+                  <div className="bg-warning/10 rounded-md p-3 text-center"><p className="text-2xl font-bold text-accent">{admitCards.length}</p><p className="text-xs text-muted-foreground">Admit Cards</p></div>
                 </div>
               )}
 
               <div className="flex gap-2 mb-4 flex-wrap">
                 <Button variant="outline" onClick={() => setShowForm(!showForm)}><Plus className="h-4 w-4 mr-1" /> Add Center</Button>
                 <Button onClick={handleGenerateAdmitCards} disabled={generating || centers.length === 0}>
-                  <Zap className="h-4 w-4 mr-1" /> {generating ? "Generating..." : "Generate Admit Cards (Location-Based)"}
+                  <Zap className="h-4 w-4 mr-1" /> {generating ? "Generating..." : "Generate Admit Cards"}
                 </Button>
               </div>
 
@@ -222,12 +179,12 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
                     <form onSubmit={handleAddCenter} className="space-y-4">
                       <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
                         <div className="space-y-1"><Label className="text-xs">Center Name *</Label><Input value={form.center_name} onChange={(e) => setForm({ ...form, center_name: e.target.value })} required /></div>
-                        <div className="space-y-1"><Label className="text-xs">Center Code</Label><Input value={form.center_code} onChange={(e) => setForm({ ...form, center_code: e.target.value })} placeholder="e.g. DL001" /></div>
+                        <div className="space-y-1"><Label className="text-xs">Center Code</Label><Input value={form.center_code} onChange={(e) => setForm({ ...form, center_code: e.target.value })} placeholder="e.g. VNS001" /></div>
                         <div className="space-y-1"><Label className="text-xs">Type</Label>
                           <Select value={form.center_type} onValueChange={(v) => setForm({ ...form, center_type: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="school">School</SelectItem><SelectItem value="college">College</SelectItem><SelectItem value="university">University</SelectItem><SelectItem value="institute">Institute</SelectItem><SelectItem value="community_hall">Community Hall</SelectItem>
+                              <SelectItem value="school">School</SelectItem><SelectItem value="college">College / Inter College</SelectItem><SelectItem value="university">University</SelectItem><SelectItem value="institute">Institute</SelectItem><SelectItem value="community_hall">Community Hall</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -255,7 +212,7 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
                           <Select value={form.reporting_time} onValueChange={(v) => setForm({ ...form, reporting_time: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="08:00 AM">08:00 AM</SelectItem><SelectItem value="08:30 AM">08:30 AM</SelectItem><SelectItem value="09:00 AM">09:00 AM</SelectItem><SelectItem value="09:30 AM">09:30 AM</SelectItem><SelectItem value="01:00 PM">01:00 PM</SelectItem><SelectItem value="01:30 PM">01:30 PM</SelectItem>
+                              <SelectItem value="07:00 AM">07:00 AM</SelectItem><SelectItem value="07:30 AM">07:30 AM</SelectItem><SelectItem value="08:00 AM">08:00 AM</SelectItem><SelectItem value="08:30 AM">08:30 AM</SelectItem><SelectItem value="09:00 AM">09:00 AM</SelectItem><SelectItem value="01:00 PM">01:00 PM</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -263,7 +220,7 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
                           <Select value={form.gate_closing_time} onValueChange={(v) => setForm({ ...form, gate_closing_time: v })}>
                             <SelectTrigger><SelectValue /></SelectTrigger>
                             <SelectContent>
-                              <SelectItem value="09:00 AM">09:00 AM</SelectItem><SelectItem value="09:30 AM">09:30 AM</SelectItem><SelectItem value="10:00 AM">10:00 AM</SelectItem><SelectItem value="02:00 PM">02:00 PM</SelectItem><SelectItem value="02:30 PM">02:30 PM</SelectItem>
+                              <SelectItem value="08:00 AM">08:00 AM</SelectItem><SelectItem value="08:30 AM">08:30 AM</SelectItem><SelectItem value="09:00 AM">09:00 AM</SelectItem><SelectItem value="09:30 AM">09:30 AM</SelectItem><SelectItem value="02:00 PM">02:00 PM</SelectItem>
                             </SelectContent>
                           </Select>
                         </div>
@@ -295,74 +252,66 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
                           </div>
                         </div>
                         <div className="flex items-center gap-3">
-                          <Badge variant={c.allocated >= c.capacity ? "destructive" : "secondary"}><Users className="h-3 w-3 mr-1" />{c.allocated}/{c.capacity}</Badge>
+                          <Badge variant="outline" className="text-xs">{c.allocated}/{c.capacity}</Badge>
                           {expandedCenter === c.id ? <ChevronUp className="h-4 w-4" /> : <ChevronDown className="h-4 w-4" />}
                         </div>
                       </div>
                       {expandedCenter === c.id && (
-                        <div className="border-t px-4 py-3 bg-muted/30 text-sm space-y-2">
-                          <div className="grid grid-cols-2 md:grid-cols-4 gap-3 text-xs">
-                            <div><span className="text-muted-foreground">Type:</span> <span className="capitalize">{c.center_type || "School"}</span></div>
-                            <div><span className="text-muted-foreground">Pincode:</span> {c.pincode || "—"}</div>
-                            <div><span className="text-muted-foreground">Contact:</span> {c.contact_number || "—"}</div>
+                        <div className="px-4 pb-4 border-t">
+                          <div className="grid grid-cols-2 md:grid-cols-3 gap-2 mt-3 text-xs">
+                            <div><span className="text-muted-foreground">Type:</span> <span className="capitalize">{c.center_type}</span></div>
                             <div><span className="text-muted-foreground">Incharge:</span> {c.incharge_name || "—"}</div>
-                            <div><span className="text-muted-foreground">Reporting:</span> {c.reporting_time || "—"}</div>
-                            <div><span className="text-muted-foreground">Gate Close:</span> {c.gate_closing_time || "—"}</div>
-                            <div><span className="text-muted-foreground">Accessible:</span> {c.is_accessible ? "Yes ♿" : "No"}</div>
-                            <div><span className="text-muted-foreground">Landmark:</span> {c.landmark || "—"}</div>
+                            <div><span className="text-muted-foreground">Contact:</span> {c.contact_number || "—"}</div>
+                            <div><span className="text-muted-foreground">Reporting:</span> {c.reporting_time}</div>
+                            <div><span className="text-muted-foreground">Gate:</span> {c.gate_closing_time}</div>
+                            <div><span className="text-muted-foreground">Pincode:</span> {c.pincode || "—"}</div>
+                            <div className="col-span-2"><span className="text-muted-foreground">Address:</span> {c.address} {c.landmark ? `(Near: ${c.landmark})` : ""}</div>
                           </div>
-                          {c.address && <p className="text-xs"><span className="text-muted-foreground">Address:</span> {c.address}</p>}
-                          <div className="flex justify-end"><Button size="sm" variant="destructive" onClick={() => handleDeleteCenter(c.id)}><Trash2 className="h-3 w-3 mr-1" /> Delete</Button></div>
+                          <div className="flex gap-2 mt-3">
+                            <Button size="sm" variant="destructive" onClick={() => handleDeleteCenter(c.id)}><Trash2 className="h-3 w-3 mr-1" /> Delete</Button>
+                          </div>
                         </div>
                       )}
                     </Card>
                   ))}
                 </div>
               ) : (
-                <div className="text-center py-8 mb-6">
-                  <Building className="h-10 w-10 mx-auto text-muted-foreground/30 mb-2" />
-                  <p className="text-muted-foreground text-sm">No centers added yet.</p>
-                </div>
+                <div className="text-center py-8"><p className="text-muted-foreground text-sm">No centers added yet</p></div>
               )}
 
-              {/* Admit Card Assignments - Change Center */}
+              {/* Admit Cards List */}
               {admitCards.length > 0 && (
-                <Card>
-                  <CardHeader className="pb-2">
-                    <CardTitle className="text-sm flex items-center gap-2"><ArrowRightLeft className="h-4 w-4 text-primary" /> Candidate Center Assignments ({admitCards.length})</CardTitle>
-                    <CardDescription className="text-xs">View and change center assignments for candidates</CardDescription>
-                  </CardHeader>
-                  <CardContent>
-                    <div className="overflow-x-auto rounded-md border">
-                      <Table>
-                        <TableHeader>
-                          <TableRow className="bg-muted/50">
-                            <TableHead className="text-xs">#</TableHead>
-                            <TableHead className="text-xs">Roll No.</TableHead>
-                            <TableHead className="text-xs">Center</TableHead>
-                            <TableHead className="text-xs">City</TableHead>
-                            <TableHead className="text-xs">Action</TableHead>
-                          </TableRow>
-                        </TableHeader>
-                        <TableBody>
-                          {admitCards.map((ac, i) => (
-                            <TableRow key={ac.id}>
-                              <TableCell className="text-xs">{i + 1}</TableCell>
-                              <TableCell className="text-xs font-mono font-bold">{ac.roll_number}</TableCell>
-                              <TableCell className="text-xs">{(ac.exam_centers as any)?.center_name || "—"}</TableCell>
-                              <TableCell className="text-xs">{(ac.exam_centers as any)?.city || "—"}</TableCell>
-                              <TableCell>
-                                <Button size="sm" variant="ghost" className="text-xs h-7" onClick={() => { setChangeCenterCard(ac); setNewCenterId(""); }}>
-                                  <RefreshCw className="h-3 w-3 mr-1" /> Change
-                                </Button>
-                              </TableCell>
-                            </TableRow>
-                          ))}
-                        </TableBody>
-                      </Table>
-                    </div>
-                  </CardContent>
-                </Card>
+                <div>
+                  <h3 className="font-semibold text-sm mb-3 flex items-center gap-2"><Users className="h-4 w-4 text-primary" /> Generated Admit Cards ({admitCards.length})</h3>
+                  <div className="overflow-x-auto rounded-md border">
+                    <table className="w-full text-sm">
+                      <thead>
+                        <tr className="bg-muted/50">
+                          <th className="text-left p-2 text-xs">#</th>
+                          <th className="text-left p-2 text-xs">Roll No.</th>
+                          <th className="text-left p-2 text-xs">Center</th>
+                          <th className="text-left p-2 text-xs">City</th>
+                          <th className="text-left p-2 text-xs">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        {admitCards.map((ac, i) => (
+                          <tr key={ac.id} className="border-b last:border-0">
+                            <td className="p-2 text-xs">{i + 1}</td>
+                            <td className="p-2 font-mono font-semibold text-xs">{ac.roll_number}</td>
+                            <td className="p-2 text-xs">{(ac.exam_centers as any)?.center_name || "—"}</td>
+                            <td className="p-2 text-xs">{(ac.exam_centers as any)?.city || "—"}</td>
+                            <td className="p-2">
+                              <Button size="sm" variant="ghost" className="h-7 text-xs" onClick={() => { setChangeCenterCard(ac); setNewCenterId(""); }}>
+                                <ArrowRightLeft className="h-3 w-3 mr-1" /> Change
+                              </Button>
+                            </td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
               )}
             </>
           )}
@@ -372,22 +321,16 @@ export function ManageCenters({ exams, selectedExamId, onSelectExam }: ManageCen
       {/* Change Center Dialog */}
       <Dialog open={!!changeCenterCard} onOpenChange={() => setChangeCenterCard(null)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Change Center for Roll #{changeCenterCard?.roll_number}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Change Center — Roll: {changeCenterCard?.roll_number}</DialogTitle></DialogHeader>
           <div className="space-y-4">
-            <p className="text-sm text-muted-foreground">
-              Current: <strong>{centers.find(c => c.id === changeCenterCard?.center_id)?.center_name || "—"}</strong>
-            </p>
+            <p className="text-xs text-muted-foreground">Current: {(changeCenterCard?.exam_centers as any)?.center_name}</p>
             <div className="space-y-2">
               <Label>New Center</Label>
               <Select value={newCenterId} onValueChange={setNewCenterId}>
                 <SelectTrigger><SelectValue placeholder="Select new center" /></SelectTrigger>
                 <SelectContent>
                   {centers.filter(c => c.id !== changeCenterCard?.center_id).map(c => (
-                    <SelectItem key={c.id} value={c.id}>
-                      {c.center_name} — {c.city} ({c.allocated}/{c.capacity})
-                    </SelectItem>
+                    <SelectItem key={c.id} value={c.id}>{c.center_name} — {c.city} ({c.allocated}/{c.capacity})</SelectItem>
                   ))}
                 </SelectContent>
               </Select>

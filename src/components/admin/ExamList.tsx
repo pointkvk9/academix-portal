@@ -11,6 +11,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trash2, Calendar, IndianRupee, Clock, FileText, BookOpen, Users, Pencil, CalendarClock, Copy } from "lucide-react";
+import { getGroupLabel, getGroupClasses, GROUPS } from "@/lib/groups";
 
 interface ExamListProps {
   exams: any[];
@@ -95,12 +96,11 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
     const updates: any = {};
     if (newExamDate) updates.exam_date = newExamDate;
     if (newLastDate) updates.last_date_to_apply = newLastDate;
-
     const { error } = await supabase.from("exams").update(updates).eq("id", dateChangeExam.id);
     if (error) {
       toast.error(error.message);
     } else {
-      toast.success("Dates updated! All candidates will see the updated dates on their dashboard.");
+      toast.success("Dates updated! All candidates will see the updated dates.");
       setDateChangeExam(null);
       onRefresh();
     }
@@ -130,12 +130,7 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
       </div>
 
       {exams.length === 0 ? (
-        <Card>
-          <CardContent className="py-12 text-center">
-            <FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" />
-            <p className="text-muted-foreground">No examinations created yet.</p>
-          </CardContent>
-        </Card>
+        <Card><CardContent className="py-12 text-center"><FileText className="h-12 w-12 mx-auto text-muted-foreground/30 mb-3" /><p className="text-muted-foreground">No examinations created yet.</p></CardContent></Card>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
           {exams.map((exam) => (
@@ -145,7 +140,7 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
                 <div className="flex items-start justify-between">
                   <div>
                     <CardTitle className="text-base">{exam.title}</CardTitle>
-                    <CardDescription>Class {exam.class} | {exam.academic_year || "—"}</CardDescription>
+                    <CardDescription>{getGroupLabel(exam.class)} ({getGroupClasses(exam.class)}) | {exam.academic_year || "—"}</CardDescription>
                   </div>
                   <Badge variant={exam.is_active ? "default" : "secondary"} className={exam.is_active ? "bg-success text-success-foreground" : ""}>
                     {exam.is_active ? "Active" : "Inactive"}
@@ -160,34 +155,16 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
                   <div className="flex items-center gap-1.5"><IndianRupee className="h-3 w-3 text-muted-foreground" /><span>Fee: <strong>₹{exam.fee_amount}</strong></span></div>
                   <div className="flex items-center gap-1.5"><Clock className="h-3 w-3 text-muted-foreground" /><span>Duration: <strong>{exam.duration_minutes || 180} min</strong></span></div>
                 </div>
-                {exam.subjects && (exam.subjects as string[]).length > 0 && (
-                  <div className="flex flex-wrap gap-1">
-                    {(exam.subjects as string[]).slice(0, 5).map((s: string, i: number) => (
-                      <Badge key={i} variant="outline" className="text-[10px]">{s}</Badge>
-                    ))}
-                    {(exam.subjects as string[]).length > 5 && <Badge variant="outline" className="text-[10px]">+{(exam.subjects as string[]).length - 5}</Badge>}
-                  </div>
-                )}
                 <Separator />
                 <div className="flex gap-1.5 flex-wrap">
-                  <Button size="sm" variant="outline" onClick={() => onSelect(exam.id)}>
-                    <Users className="h-3 w-3 mr-1" /> Submissions
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => openEdit(exam)}>
-                    <Pencil className="h-3 w-3 mr-1" /> Edit
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => openDateChange(exam)}>
-                    <CalendarClock className="h-3 w-3 mr-1" /> Dates
-                  </Button>
-                  <Button size="sm" variant="outline" onClick={() => handleDuplicate(exam)}>
-                    <Copy className="h-3 w-3 mr-1" /> Duplicate
-                  </Button>
+                  <Button size="sm" variant="outline" onClick={() => onSelect(exam.id)}><Users className="h-3 w-3 mr-1" /> Submissions</Button>
+                  <Button size="sm" variant="outline" onClick={() => openEdit(exam)}><Pencil className="h-3 w-3 mr-1" /> Edit</Button>
+                  <Button size="sm" variant="outline" onClick={() => openDateChange(exam)}><CalendarClock className="h-3 w-3 mr-1" /> Dates</Button>
+                  <Button size="sm" variant="outline" onClick={() => handleDuplicate(exam)}><Copy className="h-3 w-3 mr-1" /> Duplicate</Button>
                   <Button size="sm" variant={exam.is_active ? "secondary" : "default"} onClick={() => handleToggleActive(exam.id, exam.is_active)}>
                     {exam.is_active ? "Deactivate" : "Activate"}
                   </Button>
-                  <Button size="sm" variant="destructive" onClick={() => handleDelete(exam.id)}>
-                    <Trash2 className="h-3 w-3" />
-                  </Button>
+                  <Button size="sm" variant="destructive" onClick={() => handleDelete(exam.id)}><Trash2 className="h-3 w-3" /></Button>
                 </div>
               </CardContent>
             </Card>
@@ -195,12 +172,10 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
         </div>
       )}
 
-      {/* Edit Exam Dialog */}
+      {/* Edit Exam Dialog - includes instructions */}
       <Dialog open={!!editExam} onOpenChange={() => setEditExam(null)}>
         <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
-          <DialogHeader>
-            <DialogTitle>Edit Examination — {editExam?.title}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Edit Examination — {editExam?.title}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="grid grid-cols-2 gap-3">
               <div className="col-span-2 space-y-1"><Label className="text-xs">Title</Label><Input value={editForm.title || ""} onChange={(e) => setEditForm({ ...editForm, title: e.target.value })} /></div>
@@ -223,7 +198,11 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
               </div>
               <div className="col-span-2 space-y-1"><Label className="text-xs">Eligibility</Label><Textarea value={editForm.eligibility || ""} onChange={(e) => setEditForm({ ...editForm, eligibility: e.target.value })} rows={2} /></div>
               <div className="col-span-2 space-y-1"><Label className="text-xs">Exam Pattern</Label><Textarea value={editForm.exam_pattern || ""} onChange={(e) => setEditForm({ ...editForm, exam_pattern: e.target.value })} rows={2} /></div>
-              <div className="col-span-2 space-y-1"><Label className="text-xs">Instructions</Label><Textarea value={editForm.instructions || ""} onChange={(e) => setEditForm({ ...editForm, instructions: e.target.value })} rows={3} /></div>
+              <div className="col-span-2 space-y-1">
+                <Label className="text-xs font-semibold text-primary">Instructions (परीक्षा निर्देश)</Label>
+                <Textarea value={editForm.instructions || ""} onChange={(e) => setEditForm({ ...editForm, instructions: e.target.value })} rows={5} />
+                <p className="text-[10px] text-muted-foreground">These instructions appear on admit cards and receipts</p>
+              </div>
             </div>
           </div>
           <DialogFooter>
@@ -236,13 +215,11 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
       {/* Change Dates Dialog */}
       <Dialog open={!!dateChangeExam} onOpenChange={() => setDateChangeExam(null)}>
         <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Change Dates — {dateChangeExam?.title}</DialogTitle>
-          </DialogHeader>
+          <DialogHeader><DialogTitle>Change Dates — {dateChangeExam?.title}</DialogTitle></DialogHeader>
           <div className="space-y-4">
             <div className="bg-warning/10 border border-warning/30 rounded-md p-3 text-xs">
               <p className="font-semibold mb-1">⚠ Note:</p>
-              <p>Changing dates will automatically reflect on all student dashboards. Candidates will see the updated dates immediately.</p>
+              <p>Changing dates will automatically reflect on all student dashboards.</p>
             </div>
             <div className="space-y-2">
               <Label>New Exam Date</Label>
