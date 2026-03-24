@@ -51,7 +51,12 @@ export default function Index() {
               <Button size="lg" className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-base px-8" onClick={() => navigate("/auth")}>
                 Student Login <ArrowRight className="ml-2 h-4 w-4" />
               </Button>
-              <Button size="lg" variant="outline" className="border-primary-foreground/40 text-primary-foreground hover:bg-primary-foreground/10 font-semibold" onClick={() => navigate("/auth")}>
+            <Button
+  size="lg"
+  variant="outline"
+  className="border-primary-foreground/40 text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/10 font-semibold"
+  onClick={() => navigate("/auth")}
+>
                 नया पंजीकरण (New Registration)
               </Button>
             </div>
