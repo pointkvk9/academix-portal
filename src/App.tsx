@@ -4,6 +4,7 @@ import { Toaster as Sonner } from "@/components/ui/sonner";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { AuthProvider, useAuth } from "@/contexts/AuthContext";
+import CompanyHome from "./pages/CompanyHome";
 import Index from "./pages/Index";
 import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
@@ -36,11 +37,37 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            <Route path="/" element={<Index />} />
+            {/* Company Main Website */}
+            <Route path="/" element={<CompanyHome />} />
+
+            {/* Exam Portal */}
+            <Route path="/exam" element={<Index />} />
+
+            {/* Login */}
             <Route path="/auth" element={<Auth />} />
-            <Route path="/dashboard" element={<ProtectedRoute><DashboardRouter /></ProtectedRoute>} />
-            <Route path="/admin" element={<ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>} />
-            <Route path="/apply/:examId" element={<ProtectedRoute><ExamApplicationForm /></ProtectedRoute>} />
+
+            {/* Dashboard */}
+            <Route path="/dashboard" element={
+              <ProtectedRoute>
+                <DashboardRouter />
+              </ProtectedRoute>
+            } />
+
+            {/* Admin */}
+            <Route path="/admin" element={
+              <ProtectedRoute requiredRole="admin">
+                <AdminDashboard />
+              </ProtectedRoute>
+            } />
+
+            {/* Apply Exam */}
+            <Route path="/apply/:examId" element={
+              <ProtectedRoute>
+                <ExamApplicationForm />
+              </ProtectedRoute>
+            } />
+
+            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>
