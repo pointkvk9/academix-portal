@@ -48,30 +48,50 @@ export default function Auth() {
       return;
     }
     setLoading(true);
-    const { data: signUpData, error } = await supabase.auth.signUp({
-      email,
-      password,
-      options: {
-        data: { full_name: fullName },
-        emailRedirectTo: window.location.origin,
-      },
-    });
-    if (error) {
-      toast.error(error.message);
-    } else {
-      if (signUpData.user) {
-        await supabase.from("profiles").update({
-          full_name: fullName,
-          father_name: fatherName,
-          class: studentGroup,
-          mobile,
-          gender,
-        }).eq("user_id", signUpData.user.id);
+    
+    try {
+      // Sign up the user with all data in metadata
+      const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+        options: {
+          data: { 
+            full_name: fullName,
+            father_name: fatherName,
+            mobile: mobile,
+            gender: gender,
+            class: studentGroup
+          },
+        },
+      });
+      
+      if (signUpError) {
+        toast.error(signUpError.message);
+        setLoading(false);
+        return;
       }
-      toast.success("Registration successful! You can now login.");
-      setMode("login");
+      
+      if (signUpData.user) {
+        // Wait a bit for the trigger to create the profile
+        await new Promise(resolve => setTimeout(resolve, 1500));
+        
+        toast.success("Registration successful! You can now login.");
+        setMode("login");
+        // Clear form
+        setEmail("");
+        setPassword("");
+        setFullName("");
+        setFatherName("");
+        setMobile("");
+        setStudentGroup("");
+        setGender("");
+      }
+    } catch (error) {
+      console.error("Registration error:", error);
+      toast.error("An error occurred during registration. Please try again.");
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -99,20 +119,40 @@ export default function Auth() {
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     <div className="space-y-2">
                       <Label htmlFor="fullName">Full Name (पूरा नाम) *</Label>
-                      <Input id="fullName" value={fullName} onChange={(e) => setFullName(e.target.value)} placeholder="Enter full name" required />
+                      <Input 
+                        id="fullName" 
+                        value={fullName} 
+                        onChange={(e) => setFullName(e.target.value)} 
+                        placeholder="Enter full name" 
+                        required 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="fatherName">Father's Name (पिता का नाम)</Label>
-                      <Input id="fatherName" value={fatherName} onChange={(e) => setFatherName(e.target.value)} placeholder="Father's name" />
+                      <Input 
+                        id="fatherName" 
+                        value={fatherName} 
+                        onChange={(e) => setFatherName(e.target.value)} 
+                        placeholder="Father's name" 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="mobile">Mobile Number *</Label>
-                      <Input id="mobile" value={mobile} onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} placeholder="10-digit mobile" required maxLength={10} />
+                      <Input 
+                        id="mobile" 
+                        value={mobile} 
+                        onChange={(e) => setMobile(e.target.value.replace(/\D/g, "").slice(0, 10))} 
+                        placeholder="10-digit mobile" 
+                        required 
+                        maxLength={10} 
+                      />
                     </div>
                     <div className="space-y-2">
                       <Label htmlFor="gender">Gender (लिंग) *</Label>
                       <Select value={gender} onValueChange={setGender}>
-                        <SelectTrigger><SelectValue placeholder="Select" /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select" />
+                        </SelectTrigger>
                         <SelectContent>
                           <SelectItem value="male">Male (पुरुष)</SelectItem>
                           <SelectItem value="female">Female (महिला)</SelectItem>
@@ -123,24 +163,40 @@ export default function Auth() {
                     <div className="md:col-span-2 space-y-2">
                       <Label htmlFor="group">Group (समूह) *</Label>
                       <Select value={studentGroup} onValueChange={setStudentGroup}>
-                        <SelectTrigger><SelectValue placeholder="Select your group" /></SelectTrigger>
+                        <SelectTrigger>
+                          <SelectValue placeholder="Select your group" />
+                        </SelectTrigger>
                         <SelectContent>
                           {GROUPS.map((g) => (
-                            <SelectItem key={g.value} value={g.value}>{g.label} — {g.classes}</SelectItem>
+                            <SelectItem key={g.value} value={g.value}>
+                              {g.label} — {g.classes} ({g.description})
+                            </SelectItem>
                           ))}
                         </SelectContent>
                       </Select>
+                      {studentGroup && (
+                        <p className="text-xs text-green-600 mt-1">
+                          ✓ Selected: {GROUPS.find(g => g.value === studentGroup)?.label} ({GROUPS.find(g => g.value === studentGroup)?.classes})
+                        </p>
+                      )}
                     </div>
                   </div>
                   <div className="bg-accent/10 border border-accent/30 rounded-md p-3 text-xs text-muted-foreground flex gap-2">
                     <Info className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
-                    <span>Enter your name exactly as it appears on your school records. This will appear on your admit card.</span>
+                    <span>Enter your name exactly as it appears on your school records. Select the group based on your current class.</span>
                   </div>
                 </>
               )}
               <div className="space-y-2">
                 <Label htmlFor="email">Email Address *</Label>
-                <Input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="your.email@example.com" required />
+                <Input 
+                  id="email" 
+                  type="email" 
+                  value={email} 
+                  onChange={(e) => setEmail(e.target.value)} 
+                  placeholder="your.email@example.com" 
+                  required 
+                />
               </div>
               <div className="space-y-2">
                 <Label htmlFor="password">Password *</Label>
@@ -154,7 +210,11 @@ export default function Auth() {
                     required 
                     minLength={6} 
                   />
-                  <button type="button" className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" onClick={() => setShowPassword(!showPassword)}>
+                  <button 
+                    type="button" 
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground" 
+                    onClick={() => setShowPassword(!showPassword)}
+                  >
                     {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                   </button>
                 </div>
