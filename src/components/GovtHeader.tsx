@@ -12,7 +12,7 @@ export function GovtHeader() {
             K.V.K SANSTHA
           </h1>
           <p className="text-[11px] text-govt-header-foreground/70 tracking-wider">
-            सामान्य ज्ञान प्रतियोगिता — ऑनलाइन परीक्षा पंजीकरण पोर्टल
+            Empowering Communities Through Financial Inclusion & Education
           </p>
         </div>
         <div className="hidden md:flex flex-col items-end text-[10px] text-govt-header-foreground/60">
