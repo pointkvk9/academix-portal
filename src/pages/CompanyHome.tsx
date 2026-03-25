@@ -1,0 +1,681 @@
+import { GovtHeader } from "@/components/GovtHeader";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import { Badge } from "@/components/ui/badge";
+import { useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
+import { 
+  Calendar, 
+  Building2, 
+  Mail, 
+  Phone, 
+  Users, 
+  Shield, 
+  Award, 
+  Target, 
+  Heart, 
+  TrendingUp, 
+  Scale, 
+  Clock, 
+  MapPin, 
+  FileText, 
+  UserCheck, 
+  ExternalLink,
+  Facebook,
+  Twitter,
+  Linkedin,
+  Instagram,
+  Globe,
+  Banknote,
+  GraduationCap,
+  HandHeart,
+  Lightbulb,
+  ChevronRight,
+  Star,
+  Zap,
+  Sparkles,
+  Trophy,
+  Menu,
+  X
+} from "lucide-react";
+
+const CompanyHome = () => {
+  const navigate = useNavigate();
+  const [showExamPopup, setShowExamPopup] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isMobile, setIsMobile] = useState(false);
+
+  useEffect(() => {
+    const checkMobile = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    checkMobile();
+    window.addEventListener('resize', checkMobile);
+    return () => window.removeEventListener('resize', checkMobile);
+  }, []);
+
+  // Company information
+  const companyInfo = {
+    name: "KVK SANSTHA",
+    cin: "U65929UP2021PLN154410",
+    incorporationDate: "23/10/2021",
+    status: "Active",
+    entityStatus: "Unlisted",
+    registrar: "ROC Kanpur",
+    lastAGM: "2022-12-31",
+    registeredAddress: "C/O SANDEEP KUMAR PATEL, BIRBHANPUR, VARANASI, Uttar Pradesh, India - 221311",
+    email: "kvknidhivns@gmail.com",
+    phones: ["7651818346", "9695313984", "8840009334"],
+    authorizedCapital: "₹5,00,000",
+    paidUpCapital: "₹15,00,000",
+    category: "Non-government Company",
+    subCategory: "Company limited by shares"
+  };
+
+  const directors = [
+    {
+      name: "SANDEEP KUMAR PATEL",
+      din: "09372442",
+      designation: "Chairman & Managing Director",
+      since: "23 Oct 2021",
+      role: "MD",
+      photo: "https://randomuser.me/api/portraits/men/32.jpg",
+      bio: "Visionary leader with 15+ years of experience in financial services and community development."
+    },
+    {
+      name: "JAY SHANKAR VERMA",
+      din: "09324237",
+      designation: "Executive Director",
+      since: "23 Oct 2021",
+      role: "Executive Director",
+      photo: "https://randomuser.me/api/portraits/men/45.jpg",
+      bio: "Expert in rural banking and financial inclusion programs."
+    },
+    {
+      name: "THAKUR PRASAD",
+      din: "09372513",
+      designation: "Non-Executive Director",
+      since: "23 Oct 2021",
+      role: "Director",
+      photo: "https://randomuser.me/api/portraits/men/67.jpg",
+      bio: "Specializes in regulatory compliance and corporate governance."
+    }
+  ];
+
+  const services = [
+    {
+      icon: Banknote,
+      title: "Savings & Deposit Schemes",
+      description: "Secure savings accounts with competitive interest rates for members.",
+      features: ["Member Savings Accounts", "Fixed Deposits", "Recurring Deposits", "Daily Deposit Schemes"],
+      color: "from-blue-500 to-cyan-500"
+    },
+    {
+      icon: HandHeart,
+      title: "Loan Facilities",
+      description: "Quick and hassle-free loans for members with minimal documentation.",
+      features: ["Personal Loans", "Education Loans", "Business Loans", "Emergency Loans"],
+      color: "from-green-500 to-emerald-500"
+    },
+    {
+      icon: GraduationCap,
+      title: "Educational Initiatives",
+      description: "Supporting education through scholarships and competitive exam programs.",
+      features: ["Scholarship Programs", "Exam Portal", "Study Materials", "Career Guidance"],
+      color: "from-purple-500 to-pink-500"
+    },
+    {
+      icon: Globe,
+      title: "Financial Literacy",
+      description: "Empowering communities through financial education and awareness.",
+      features: ["Financial Workshops", "Digital Banking Training", "Investment Guidance", "Retirement Planning"],
+      color: "from-orange-500 to-red-500"
+    }
+  ];
+
+  const initiatives = [
+    {
+      icon: Trophy,
+      title: "General Knowledge Competition",
+      description: "Annual GK competition for students with cash prizes and certificates.",
+      impact: "5000+ Students Participated",
+      year: "2024"
+    },
+    {
+      icon: Heart,
+      title: "Rural Development Program",
+      description: "Supporting rural infrastructure and community development projects.",
+      impact: "10+ Villages Benefited",
+      year: "2023-24"
+    },
+    {
+      icon: Sparkles,
+      title: "Women Empowerment",
+      description: "Skill development and self-help groups for women entrepreneurs.",
+      impact: "200+ Women Trained",
+      year: "2024"
+    },
+    {
+      icon: Lightbulb,
+      title: "Digital Literacy Drive",
+      description: "Teaching digital skills to rural communities for financial inclusion.",
+      impact: "1000+ People Trained",
+      year: "2023-24"
+    }
+  ];
+
+  const whyChooseUs = [
+    { icon: Shield, title: "Government Registered", desc: "Registered under Companies Act, RoC Kanpur" },
+    { icon: Users, title: "Member-Focused", desc: "Committed to member benefits and community growth" },
+    { icon: Scale, title: "Transparent Operations", desc: "Regular AGMs and compliant financial practices" },
+    { icon: Clock, title: "Established Since 2021", desc: "4+ years of trust and reliable service" },
+    { icon: Zap, title: "Quick Processing", desc: "Fast loan approvals and account openings" },
+    { icon: Star, title: "Member Benefits", desc: "Exclusive benefits for all members" }
+  ];
+
+  const scrollToSection = (sectionId: string) => {
+    const section = document.getElementById(sectionId);
+    if (section) {
+      section.scrollIntoView({ behavior: 'smooth' });
+      setMobileMenuOpen(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-background">
+      <GovtHeader />
+      
+      {/* Mobile Menu Overlay */}
+      {mobileMenuOpen && (
+        <div className="fixed inset-0 bg-black/50 z-40 md:hidden" onClick={() => setMobileMenuOpen(false)}>
+          <div className="fixed top-0 right-0 bottom-0 w-64 bg-white shadow-xl p-6" onClick={(e) => e.stopPropagation()}>
+            <div className="flex justify-end mb-6">
+              <button onClick={() => setMobileMenuOpen(false)} className="p-2">
+                <X className="h-5 w-5" />
+              </button>
+            </div>
+            <div className="flex flex-col space-y-4">
+              <button onClick={() => scrollToSection('services')} className="text-left py-2 hover:text-primary transition-colors">Services</button>
+              <button onClick={() => scrollToSection('initiatives')} className="text-left py-2 hover:text-primary transition-colors">Initiatives</button>
+              <button onClick={() => scrollToSection('directors')} className="text-left py-2 hover:text-primary transition-colors">Leadership</button>
+              <button onClick={() => scrollToSection('contact')} className="text-left py-2 hover:text-primary transition-colors">Contact</button>
+              <Button className="w-full mt-4" onClick={() => navigate("/exam")}>
+                Exam Portal
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Exam Portal Notification Bar - Responsive */}
+      <div 
+        className="bg-red-600 hover:bg-red-700 cursor-pointer transition-colors py-2 md:py-3 px-3 md:px-4 border-b border-red-700"
+        onClick={() => setShowExamPopup(true)}
+      >
+        <div className="container mx-auto">
+          <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap">
+            <div className="animate-pulse flex-shrink-0">
+              <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
+              </svg>
+            </div>
+            <p className="text-white text-xs md:text-sm lg:text-base font-bold text-center">
+              📢 EXAM PORTAL | सामान्य ज्ञान प्रतियोगिता 2026-27 | रजिस्ट्रेशन शुरू — Click Here!
+            </p>
+            <ChevronRight className="h-3 w-3 md:h-4 md:w-4 text-white flex-shrink-0" />
+          </div>
+        </div>
+      </div>
+
+      {/* Exam Portal Popup Modal - Responsive */}
+      {showExamPopup && (
+        <div className="fixed inset-0 bg-black/70 flex items-center justify-center z-50 p-3 md:p-4" onClick={() => setShowExamPopup(false)}>
+          <div className="bg-white rounded-xl md:rounded-2xl max-w-[90%] md:max-w-md w-full p-4 md:p-6 shadow-2xl animate-in zoom-in-95 duration-200 mx-3" onClick={(e) => e.stopPropagation()}>
+            <div className="text-center mb-3 md:mb-4">
+              <div className="w-12 h-12 md:w-16 md:h-16 bg-red-100 rounded-full flex items-center justify-center mx-auto mb-2 md:mb-3">
+                <GraduationCap className="h-6 w-6 md:h-8 md:w-8 text-red-600" />
+              </div>
+              <h3 className="text-lg md:text-xl font-bold text-gray-900">Exam Portal</h3>
+              <p className="text-gray-600 text-xs md:text-sm mt-1">सामान्य ज्ञान प्रतियोगिता 2026-27</p>
+            </div>
+            <div className="space-y-2 md:space-y-3 mb-4 md:mb-6">
+              <div className="bg-gray-50 p-2 md:p-3 rounded-lg">
+                <p className="text-xs md:text-sm font-semibold">📅 Registration Dates</p>
+                <p className="text-[11px] md:text-xs text-gray-600">24 March 2026 - 24 April 2026</p>
+              </div>
+              <div className="bg-gray-50 p-2 md:p-3 rounded-lg">
+                <p className="text-xs md:text-sm font-semibold">💰 Exam Fee</p>
+                <p className="text-[11px] md:text-xs text-gray-600">Only ₹50/-</p>
+              </div>
+              <div className="bg-gray-50 p-2 md:p-3 rounded-lg">
+                <p className="text-xs md:text-sm font-semibold">🏆 Prize Amount</p>
+                <p className="text-[11px] md:text-xs text-gray-600">Up to ₹3,001 + Certificates</p>
+              </div>
+            </div>
+            <div className="flex gap-2 md:gap-3">
+              <Button className="flex-1 bg-red-600 hover:bg-red-700 text-sm md:text-base" onClick={() => {
+                setShowExamPopup(false);
+                navigate("/exam");
+              }}>
+                Apply Now
+              </Button>
+              <Button variant="outline" className="flex-1 text-sm md:text-base" onClick={() => setShowExamPopup(false)}>
+                Close
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+      
+      {/* Hero Section - Responsive */}
+      <section className="relative overflow-hidden">
+        <div className="absolute inset-0 bg-gradient-to-br from-primary via-primary to-primary/80" />
+        <div className="absolute inset-0 opacity-10" style={{ backgroundImage: "url(\"data:image/svg+xml,%3Csvg width='60' height='60' viewBox='0 0 60 60' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23ffffff' fill-opacity='0.4'%3E%3Cpath d='M36 34v-4h-2v4h-4v2h4v4h2v-4h4v-2h-4zm0-30V0h-2v4h-4v2h4v4h2V6h4V4h-4zM6 34v-4H4v4H0v2h4v4h2v-4h4v-2H6zM6 4V0H4v4H0v2h4v4h2V6h4V4H6z'/%3E%3C/g%3E%3C/g%3E%3C/svg%3E\")" }} />
+        <div className="relative py-12 md:py-16 lg:py-20 px-4">
+          <div className="container mx-auto text-center max-w-4xl">
+            <Badge className="bg-accent/20 text-accent border-accent/40 mb-4 md:mb-6 px-3 py-1 md:px-4 md:py-2 text-xs md:text-sm animate-bounce inline-flex items-center gap-1 md:gap-2">
+              <Building2 className="h-3 w-3 md:h-4 md:w-4" />
+              <span>Private Limited Company | RoC Kanpur</span>
+            </Badge>
+            <h1 className="text-2xl md:text-4xl lg:text-6xl font-black mb-3 md:mb-4 leading-tight text-primary-foreground px-2" style={{ fontFamily: "'Playfair Display', serif" }}>
+              {companyInfo.name}
+            </h1>
+            <p className="text-base md:text-xl lg:text-2xl text-primary-foreground/80 mb-2 font-medium px-2">
+              Empowering Communities Through Financial Inclusion & Education
+            </p>
+            <p className="text-xs md:text-sm text-primary-foreground/60 mb-6 md:mb-8 max-w-2xl mx-auto px-4">
+              A Government Registered Nidhi Company committed to promoting savings, providing financial services, 
+              and supporting education in rural communities.
+            </p>
+            <div className="flex flex-col sm:flex-row gap-3 justify-center items-center px-4">
+              <Button size={isMobile ? "default" : "lg"} className="bg-accent text-accent-foreground hover:bg-accent/90 font-bold text-sm md:text-base px-6 md:px-8 w-full sm:w-auto" onClick={() => scrollToSection('services')}>
+                Our Services <ChevronRight className="ml-2 h-3 w-3 md:h-4 md:w-4" />
+              </Button>
+              <Button
+                size={isMobile ? "default" : "lg"}
+                variant="outline"
+                className="border-primary-foreground/40 text-primary-foreground bg-primary-foreground/10 hover:bg-primary-foreground/20 font-semibold text-sm md:text-base w-full sm:w-auto"
+                onClick={() => scrollToSection('contact')}
+              >
+                Contact Us
+              </Button>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Services Section - Responsive Cards */}
+      <section id="services" className="py-12 md:py-16 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <Badge className="bg-primary/10 text-primary mb-2 md:mb-3 text-xs md:text-sm">What We Offer</Badge>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4">Our Services</h2>
+            <div className="w-16 md:w-20 h-1 bg-accent mx-auto mb-4 md:mb-6" />
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">
+              Comprehensive financial services designed for member growth and community development.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {services.map((service, i) => (
+              <Card key={i} className="hover:shadow-xl transition-all duration-300 group overflow-hidden">
+                <div className={`h-1 md:h-2 bg-gradient-to-r ${service.color}`} />
+                <CardContent className="p-4 md:p-6">
+                  <div className="w-10 h-10 md:w-14 md:h-14 rounded-xl bg-gradient-to-br from-primary/10 to-primary/5 flex items-center justify-center mb-3 md:mb-4 group-hover:scale-110 transition-transform">
+                    <service.icon className="h-5 w-5 md:h-7 md:w-7 text-primary" />
+                  </div>
+                  <h3 className="text-base md:text-lg font-bold mb-1 md:mb-2">{service.title}</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-3 md:mb-4">{service.description}</p>
+                  <ul className="space-y-1 md:space-y-2">
+                    {service.features.map((feature, idx) => (
+                      <li key={idx} className="text-[10px] md:text-xs flex items-center gap-1 md:gap-2 text-muted-foreground">
+                        <div className="w-1 h-1 rounded-full bg-accent flex-shrink-0" />
+                        <span className="truncate">{feature}</span>
+                      </li>
+                    ))}
+                  </ul>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Initiatives Section - Responsive */}
+      <section id="initiatives" className="py-12 md:py-16 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <Badge className="bg-primary/10 text-primary mb-2 md:mb-3 text-xs md:text-sm">Community Impact</Badge>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4">Our Initiatives</h2>
+            <div className="w-16 md:w-20 h-1 bg-accent mx-auto mb-4 md:mb-6" />
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">
+              Making a difference through meaningful programs and community engagement.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 md:gap-6">
+            {initiatives.map((initiative, i) => (
+              <Card key={i} className="hover:shadow-lg transition-all group">
+                <CardContent className="p-4 md:p-6 text-center">
+                  <div className="w-12 h-12 md:w-16 md:h-16 rounded-full bg-accent/10 flex items-center justify-center mx-auto mb-3 md:mb-4 group-hover:bg-accent/20 transition-colors">
+                    <initiative.icon className="h-6 w-6 md:h-8 md:w-8 text-accent" />
+                  </div>
+                  <h3 className="text-sm md:text-base font-bold mb-1 md:mb-2">{initiative.title}</h3>
+                  <p className="text-xs md:text-sm text-muted-foreground mb-2 md:mb-3">{initiative.description}</p>
+                  <div className="pt-2 md:pt-3 border-t">
+                    <p className="text-[10px] md:text-xs font-semibold text-primary">{initiative.impact}</p>
+                    <p className="text-[9px] md:text-xs text-muted-foreground">Since {initiative.year}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Company Overview Section - Responsive */}
+      <section className="py-12 md:py-16 px-4">
+        <div className="container mx-auto max-w-6xl">
+          <div className="text-center mb-8 md:mb-12">
+            <Badge className="bg-primary/10 text-primary mb-2 md:mb-3 text-xs md:text-sm">About Us</Badge>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4">Company Overview</h2>
+            <div className="w-16 md:w-20 h-1 bg-accent mx-auto mb-4 md:mb-6" />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 md:gap-10">
+            <div>
+              <div className="bg-card p-4 md:p-6 rounded-xl border shadow-sm">
+                <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
+                  <Building2 className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                  Corporate Information
+                </h3>
+                <div className="space-y-2 md:space-y-3 text-xs md:text-sm">
+                  <div className="flex flex-col sm:flex-row justify-between py-2 border-b gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">CIN</span>
+                    <span className="font-mono font-medium break-all">{companyInfo.cin}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between py-2 border-b gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">Date of Incorporation</span>
+                    <span className="font-medium">{companyInfo.incorporationDate}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between py-2 border-b gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">Entity Status</span>
+                    <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200 w-fit sm:w-auto">{companyInfo.entityStatus}</Badge>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between py-2 border-b gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">Registrar of Company</span>
+                    <span className="font-medium">{companyInfo.registrar}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between py-2 border-b gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">Last AGM</span>
+                    <span className="font-medium">{companyInfo.lastAGM}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between py-2 border-b gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">Authorized Capital</span>
+                    <span className="font-medium">{companyInfo.authorizedCapital}</span>
+                  </div>
+                  <div className="flex flex-col sm:flex-row justify-between py-2 gap-1 sm:gap-0">
+                    <span className="text-muted-foreground">Paid-up Capital</span>
+                    <span className="font-medium">{companyInfo.paidUpCapital}</span>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div>
+              <div className="bg-card p-4 md:p-6 rounded-xl border shadow-sm">
+                <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4 flex items-center gap-2">
+                  <Target className="h-4 w-4 md:h-5 md:w-5 text-primary" />
+                  Our Vision & Mission
+                </h3>
+                <div className="space-y-3 md:space-y-4">
+                  <div>
+                    <h4 className="font-semibold text-primary mb-1 md:mb-2 text-sm md:text-base">Vision</h4>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      To be a leading Nidhi company fostering financial independence and educational empowerment 
+                      in every household across rural India.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-primary mb-1 md:mb-2 text-sm md:text-base">Mission</h4>
+                    <p className="text-xs md:text-sm text-muted-foreground">
+                      To provide accessible financial services, promote savings habits, and support educational 
+                      initiatives that create lasting impact in communities we serve.
+                    </p>
+                  </div>
+                  <div>
+                    <h4 className="font-semibold text-primary mb-1 md:mb-2 text-sm md:text-base">Core Values</h4>
+                    <div className="flex flex-wrap gap-1.5 md:gap-2">
+                      {["Trust", "Transparency", "Community First", "Innovation", "Excellence"].map((value, i) => (
+                        <Badge key={i} variant="secondary" className="bg-primary/5 text-xs md:text-sm">{value}</Badge>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Why Choose Us Section - Responsive */}
+      <section className="py-12 md:py-16 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <Badge className="bg-primary/10 text-primary mb-2 md:mb-3 text-xs md:text-sm">Why Trust Us</Badge>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4">Why Choose KVK NIDHI LIMITED</h2>
+            <div className="w-16 md:w-20 h-1 bg-accent mx-auto mb-4 md:mb-6" />
+          </div>
+
+          <div className="grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-3 md:gap-4">
+            {whyChooseUs.map((item, i) => (
+              <Card key={i} className="text-center hover:border-primary/30 transition-all hover:shadow-md">
+                <CardContent className="p-3 md:p-4">
+                  <div className="w-8 h-8 md:w-12 md:h-12 rounded-full bg-primary/10 flex items-center justify-center mx-auto mb-2 md:mb-3">
+                    <item.icon className="h-4 w-4 md:h-6 md:w-6 text-primary" />
+                  </div>
+                  <h3 className="font-bold text-[10px] md:text-sm mb-0.5 md:mb-1">{item.title}</h3>
+                  <p className="text-[8px] md:text-xs text-muted-foreground">{item.desc}</p>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Directors Section with Photos - Responsive */}
+      <section id="directors" className="py-12 md:py-16 px-4">
+        <div className="container mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <Badge className="bg-primary/10 text-primary mb-2 md:mb-3 text-xs md:text-sm">Leadership</Badge>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4">Board of Directors</h2>
+            <div className="w-16 md:w-20 h-1 bg-accent mx-auto mb-4 md:mb-6" />
+            <p className="text-sm md:text-base text-muted-foreground max-w-2xl mx-auto px-4">
+              Meet our experienced leadership team driving KVK SANSTHA towards excellence.
+            </p>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 md:gap-8">
+            {directors.map((director, i) => (
+              <Card key={i} className="text-center hover:shadow-xl transition-all overflow-hidden group">
+                <div className="relative overflow-hidden">
+                  <img 
+                    src={director.photo} 
+                    alt={director.name}
+                    className="w-full h-48 md:h-64 object-cover group-hover:scale-105 transition-transform duration-500"
+                  />
+                  <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />
+                </div>
+                <CardContent className="p-4 md:p-6">
+                  <h3 className="text-sm md:text-lg font-bold">{director.name}</h3>
+                  <p className="text-accent font-semibold text-xs md:text-sm mt-1">{director.designation}</p>
+                  <p className="text-[10px] md:text-xs text-muted-foreground mt-1 md:mt-2">{director.bio}</p>
+                  <div className="mt-3 md:mt-4 pt-2 md:pt-3 border-t text-[9px] md:text-xs text-muted-foreground space-y-0.5 md:space-y-1">
+                    <p>DIN: {director.din}</p>
+                    <p>Since: {director.since}</p>
+                  </div>
+                </CardContent>
+              </Card>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* Contact Section with Map - Responsive */}
+      <section id="contact" className="py-12 md:py-16 px-4 bg-muted/30">
+        <div className="container mx-auto">
+          <div className="text-center mb-8 md:mb-12">
+            <Badge className="bg-primary/10 text-primary mb-2 md:mb-3 text-xs md:text-sm">Get In Touch</Badge>
+            <h2 className="text-2xl md:text-3xl lg:text-4xl font-bold mb-2 md:mb-4">Contact Us</h2>
+            <div className="w-16 md:w-20 h-1 bg-accent mx-auto mb-4 md:mb-6" />
+          </div>
+
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8">
+            <div className="bg-card p-4 md:p-6 rounded-xl border shadow-sm">
+              <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Contact Information</h3>
+              <div className="space-y-3 md:space-y-4">
+                <div className="flex items-start gap-2 md:gap-3">
+                  <MapPin className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm md:text-base font-medium">Registered Office</p>
+                    <p className="text-xs md:text-sm text-muted-foreground break-words">{companyInfo.registeredAddress}</p>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 md:gap-3">
+                  <Mail className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm md:text-base font-medium">Email</p>
+                    <a href={`mailto:${companyInfo.email}`} className="text-xs md:text-sm text-accent hover:underline break-all">
+                      {companyInfo.email}
+                    </a>
+                  </div>
+                </div>
+                <div className="flex items-start gap-2 md:gap-3">
+                  <Phone className="h-4 w-4 md:h-5 md:w-5 text-primary mt-0.5 flex-shrink-0" />
+                  <div>
+                    <p className="text-sm md:text-base font-medium">Phone Numbers</p>
+                    <div className="text-xs md:text-sm text-muted-foreground space-y-0.5 md:space-y-1">
+                      {companyInfo.phones.map((phone, i) => (
+                        <a key={i} href={`tel:${phone}`} className="block hover:text-accent">
+                          {phone}
+                        </a>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            <div className="bg-card p-4 md:p-6 rounded-xl border shadow-sm">
+              <h3 className="text-lg md:text-xl font-semibold mb-3 md:mb-4">Our Location</h3>
+              <div className="rounded-lg overflow-hidden h-48 md:h-64">
+                <iframe 
+                  src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d28834.063297538797!2d82.8937507!3d25.3176456!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x398e2e4c6b8b8b8b%3A0x8b8b8b8b8b8b8b8b!2sRajatalab%2C%20Varanasi%2C%20Uttar%20Pradesh!5e0!3m2!1sen!2sin!4v1700000000000!5m2!1sen!2sin"
+                  className="w-full h-full border-0"
+                  title="Company Location Map - Rajatalab, Varanasi"
+                  allowFullScreen
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+              </div>
+              <p className="text-[10px] md:text-xs text-muted-foreground mt-2 md:mt-3 text-center">
+                📍 Rajatalab, Varanasi, Uttar Pradesh - 221311
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      {/* Footer - Responsive */}
+      <footer className="bg-primary text-primary-foreground py-8 md:py-10 px-4">
+        <div className="container mx-auto">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6 md:gap-8 mb-6 md:mb-8">
+            <div>
+              <h4 className="font-bold mb-2 md:mb-3 text-base md:text-lg" style={{ fontFamily: "'Playfair Display', serif" }}>
+                {companyInfo.name}
+              </h4>
+              <p className="text-[10px] md:text-xs text-primary-foreground/70 leading-relaxed">
+                A Government Registered Nidhi Company committed to financial inclusion and educational empowerment.
+              </p>
+              <div className="flex gap-2 md:gap-3 mt-3 md:mt-4">
+                <a href="#" className="text-primary-foreground/60 hover:text-accent transition-colors">
+                  <Facebook className="h-3 w-3 md:h-4 md:w-4" />
+                </a>
+                <a href="#" className="text-primary-foreground/60 hover:text-accent transition-colors">
+                  <Twitter className="h-3 w-3 md:h-4 md:w-4" />
+                </a>
+                <a href="#" className="text-primary-foreground/60 hover:text-accent transition-colors">
+                  <Linkedin className="h-3 w-3 md:h-4 md:w-4" />
+                </a>
+                <a href="#" className="text-primary-foreground/60 hover:text-accent transition-colors">
+                  <Instagram className="h-3 w-3 md:h-4 md:w-4" />
+                </a>
+              </div>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-2 md:mb-3 text-xs md:text-sm">Company Info</h4>
+              <ul className="text-[10px] md:text-xs text-primary-foreground/70 space-y-1 md:space-y-2">
+                <li className="break-all">CIN: {companyInfo.cin}</li>
+                <li>Incorporated: {companyInfo.incorporationDate}</li>
+                <li>Status: {companyInfo.status}</li>
+                <li>RoC: {companyInfo.registrar}</li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-2 md:mb-3 text-xs md:text-sm">Quick Links</h4>
+              <ul className="text-[10px] md:text-xs text-primary-foreground/70 space-y-1 md:space-y-2">
+                <li>
+                  <button onClick={() => scrollToSection('services')} className="hover:text-accent transition-colors">
+                    Our Services
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => scrollToSection('initiatives')} className="hover:text-accent transition-colors">
+                    Initiatives
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => scrollToSection('directors')} className="hover:text-accent transition-colors">
+                    Leadership
+                  </button>
+                </li>
+                <li>
+                  <button onClick={() => scrollToSection('contact')} className="hover:text-accent transition-colors">
+                    Contact Us
+                  </button>
+                </li>
+              </ul>
+            </div>
+
+            <div>
+              <h4 className="font-bold mb-2 md:mb-3 text-xs md:text-sm">Contact</h4>
+              <div className="text-[10px] md:text-xs text-primary-foreground/70 space-y-1 md:space-y-2">
+                <p className="flex items-center gap-1 md:gap-2 break-all">
+                  <Mail className="h-2.5 w-2.5 md:h-3 md:w-3 flex-shrink-0" />
+                  <a href={`mailto:${companyInfo.email}`} className="hover:text-accent break-all">{companyInfo.email}</a>
+                </p>
+                {companyInfo.phones.map((phone, i) => (
+                  <p key={i} className="flex items-center gap-1 md:gap-2">
+                    <Phone className="h-2.5 w-2.5 md:h-3 md:w-3 flex-shrink-0" />
+                    <a href={`tel:${phone}`} className="hover:text-accent">{phone}</a>
+                  </p>
+                ))}
+              </div>
+            </div>
+          </div>
+
+          <div className="border-t border-primary-foreground/20 pt-4 md:pt-6">
+            <div className="flex flex-col md:flex-row justify-between items-center gap-2 md:gap-4 text-[9px] md:text-xs text-primary-foreground/50 text-center">
+              <p>© {new Date().getFullYear()} {companyInfo.name} — All Rights Reserved.</p>
+              <p>Registered under Companies Act, RoC Kanpur | CIN: {companyInfo.cin}</p>
+            </div>
+          </div>
+        </div>
+      </footer>
+    </div>
+  );
+};
+
+export default CompanyHome;
