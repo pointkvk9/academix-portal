@@ -6,13 +6,11 @@ export const GROUPS = [
 ];
 
 export function getGroupLabel(value: string): string {
-  const group = GROUPS.find(g => g.value === value);
-  return group ? group.label : value;
+  return GROUPS.find(g => g.value === value)?.label || value;
 }
 
 export function getGroupClasses(value: string): string {
-  const group = GROUPS.find(g => g.value === value);
-  return group ? group.classes : "";
+  return GROUPS.find(g => g.value === value)?.classes || "";
 }
 
 export function getGroupForClass(cls: string): string {
@@ -26,14 +24,4 @@ export function getGroupForClass(cls: string): string {
 // Get full group details
 export function getGroupDetails(value: string) {
   return GROUPS.find(g => g.value === value);
-}
-
-// Get group by value
-export function getGroupByValue(value: string) {
-  return GROUPS.find(g => g.value === value);
-}
-
-// Get all groups
-export function getAllGroups() {
-  return GROUPS;
 }
