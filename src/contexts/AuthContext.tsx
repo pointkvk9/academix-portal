@@ -1,6 +1,7 @@
 import { createContext, useContext, useEffect, useState, ReactNode } from "react";
 import { User, Session } from "@supabase/supabase-js";
 import { supabase } from "@/integrations/supabase/client";
+import { toast } from "sonner";
 
 type UserRole = "admin" | "student";
 
@@ -35,12 +36,58 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const fetchUserData = async (userId: string) => {
     try {
-      const [{ data: roleData }, { data: profileData }] = await Promise.all([
-        supabase.from("user_roles").select("role").eq("user_id", userId).single(),
-        supabase.from("profiles").select("*").eq("user_id", userId).single(),
-      ]);
-      if (roleData) setRole(roleData.role as UserRole);
-      if (profileData) setProfile(profileData);
+      // Fetch role
+      const { data: roleData, error: roleError } = await supabase
+        .from("user_roles")
+        .select("role")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (roleError) {
+        console.error("Error fetching role:", roleError);
+      } else if (roleData) {
+        setRole(roleData.role as UserRole);
+      }
+
+      // Fetch profile
+      const { data: profileData, error: profileError } = await supabase
+        .from("profiles")
+        .select("*")
+        .eq("user_id", userId)
+        .maybeSingle();
+      
+      if (profileError) {
+        console.error("Error fetching profile:", profileError);
+      } else if (profileData) {
+        setProfile(profileData);
+      } else {
+        // Profile might not exist yet, try to create it from user metadata
+        const { data: userData } = await supabase.auth.getUser();
+        if (userData?.user?.user_metadata) {
+          const metadata = userData.user.user_metadata;
+          const { error: insertError } = await supabase
+            .from("profiles")
+            .insert({
+              user_id: userId,
+              email: userData.user.email,
+              full_name: metadata.full_name || '',
+              father_name: metadata.father_name || '',
+              mobile: metadata.mobile || '',
+              gender: metadata.gender || '',
+              class: metadata.class || '',
+            });
+          
+          if (!insertError) {
+            // Fetch the newly created profile
+            const { data: newProfile } = await supabase
+              .from("profiles")
+              .select("*")
+              .eq("user_id", userId)
+              .maybeSingle();
+            if (newProfile) setProfile(newProfile);
+          }
+        }
+      }
     } catch (err) {
       console.error("Error fetching user data:", err);
     }
