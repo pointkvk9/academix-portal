@@ -11,6 +11,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { AdmitCardView } from "@/components/student/AdmitCardView";
 import { ApplicationReceipt } from "@/components/student/ApplicationReceipt";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+<<<<<<< HEAD
 import { 
   LogOut, 
   FileText, 
@@ -25,6 +26,9 @@ import {
   ArrowUpDown,
   RefreshCw
 } from "lucide-react";
+=======
+import { LogOut, FileText, CreditCard, BookOpen, Calendar, Clock, IndianRupee, User, AlertCircle, Eye, ArrowUpDown } from "lucide-react";
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
 import { useNavigate } from "react-router-dom";
 import { getGroupLabel, getGroupClasses, getGroupDetails } from "@/lib/groups";
 import { toast } from "sonner";
@@ -38,11 +42,18 @@ export default function StudentDashboard() {
   const [sortBy, setSortBy] = useState<string>("newest");
   const [receiptApp, setReceiptApp] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+<<<<<<< HEAD
   const [refreshing, setRefreshing] = useState(false);
+=======
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
 
   useEffect(() => {
     if (!user || !profile) {
       if (user && !profile) {
+<<<<<<< HEAD
+=======
+        // Profile might be loading, wait a bit
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
         const timer = setTimeout(() => {
           window.location.reload();
         }, 2000);
@@ -54,6 +65,10 @@ export default function StudentDashboard() {
     const fetchData = async () => {
       setLoading(true);
       try {
+<<<<<<< HEAD
+=======
+        // Fetch exams for the student's group
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
         const { data: examsData, error: examsError } = await supabase
           .from("exams")
           .select("*")
@@ -68,6 +83,10 @@ export default function StudentDashboard() {
           setExams(examsData || []);
         }
 
+<<<<<<< HEAD
+=======
+        // Fetch applications
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
         const { data: appsData, error: appsError } = await supabase
           .from("exam_applications")
           .select("*, exams(title, exam_date, fee_amount, class, duration_minutes, exam_time, exam_type, subjects, total_marks, instructions, last_date_to_apply)")
@@ -79,6 +98,10 @@ export default function StudentDashboard() {
           setApplications(appsData || []);
         }
 
+<<<<<<< HEAD
+=======
+        // Fetch admit cards
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
         const { data: admitData, error: admitError } = await supabase
           .from("admit_cards")
           .select("*, exams(title, exam_date, exam_time, duration_minutes, subjects, total_marks, exam_type, exam_pattern, instructions), exam_centers(center_name, center_code, address, city, state, pincode, reporting_time, gate_closing_time)")
@@ -100,6 +123,7 @@ export default function StudentDashboard() {
     fetchData();
   }, [user, profile]);
 
+<<<<<<< HEAD
   const handleRefresh = async () => {
     setRefreshing(true);
     try {
@@ -123,6 +147,8 @@ export default function StudentDashboard() {
     }
   };
 
+=======
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
   const hasApplied = (examId: string) => applications.some(a => a.exam_id === examId);
   const getApplication = (examId: string) => applications.find(a => a.exam_id === examId);
 
@@ -383,6 +409,7 @@ export default function StudentDashboard() {
           </TabsContent>
 
           <TabsContent value="admitcards">
+<<<<<<< HEAD
             {admitCards.length === 0 ? (
               <Card className="border-dashed border-2 border-accent/30">
                 <CardContent className="py-12 text-center">
@@ -411,6 +438,9 @@ export default function StudentDashboard() {
             ) : (
               <AdmitCardView admitCards={admitCards} profile={profile} />
             )}
+=======
+            <AdmitCardView admitCards={admitCards} profile={profile} />
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
           </TabsContent>
         </Tabs>
       </div>
@@ -425,4 +455,8 @@ export default function StudentDashboard() {
       </Dialog>
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc

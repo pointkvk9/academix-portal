@@ -3,8 +3,11 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Download, CreditCard } from "lucide-react";
 import { downloadElementAsPdf } from "@/lib/pdfDownload";
 import { getGroupLabel, getGroupClasses } from "@/lib/groups";
+<<<<<<< HEAD
 import { useEffect, useState } from "react";
 import { supabase } from "@/integrations/supabase/client";
+=======
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
 
 interface AdmitCardViewProps {
   admitCards: any[];
@@ -12,6 +15,7 @@ interface AdmitCardViewProps {
 }
 
 export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
+<<<<<<< HEAD
   const [applicationDetails, setApplicationDetails] = useState<Record<string, any>>({});
 
   useEffect(() => {
@@ -41,6 +45,8 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
     }
   }, [admitCards]);
 
+=======
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
   if (admitCards.length === 0) {
     return (
       <Card>
@@ -53,6 +59,7 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
     );
   }
 
+<<<<<<< HEAD
   // Helper function to get data from application details
   const getPersonalDetail = (applicationId: string, field: string, fallback: string = "") => {
     const appDetails = applicationDetails[applicationId];
@@ -149,13 +156,18 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
     return "Not Assigned";
   };
 
+=======
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
   return (
     <div className="space-y-6">
       {admitCards.map((card) => {
         const exam = card.exams as any;
         const center = card.exam_centers as any;
         const subjects = (exam?.subjects as string[]) || [];
+<<<<<<< HEAD
         const applicationId = card.application_id;
+=======
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
 
         return (
           <div key={card.id}>
@@ -178,7 +190,11 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                   {/* Roll Number */}
                   <div style={{ background: "#fff3e0", border: "2px solid #ff9800", borderRadius: "4px", padding: "8px", textAlign: "center", marginBottom: "14px" }}>
                     <p style={{ fontSize: "10px", color: "#888", textTransform: "uppercase", letterSpacing: "2px" }}>Roll Number</p>
+<<<<<<< HEAD
                     <p style={{ fontSize: "22px", fontWeight: 900, color: "#8B0000", letterSpacing: "4px", fontFamily: "monospace" }}>{card.roll_number || "Not Assigned"}</p>
+=======
+                    <p style={{ fontSize: "22px", fontWeight: 900, color: "#8B0000", letterSpacing: "4px", fontFamily: "monospace" }}>{card.roll_number}</p>
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                   </div>
 
                   {/* Photo + Details */}
@@ -187,6 +203,7 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                       <table style={{ width: "100%", borderCollapse: "collapse" }}>
                         <tbody>
                           {[
+<<<<<<< HEAD
                             ["Candidate Name", getFullName(applicationId)],
                             ["Father's Name", getFatherName(applicationId)],
                             ["Mother's Name", getMotherName(applicationId)],
@@ -197,6 +214,18 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                             <tr key={i} style={{ borderBottom: "1px solid #e0e0e0" }}>
                               <td style={{ padding: "4px 8px", fontWeight: 600, width: "38%", background: "#f5f5f5", fontSize: "11px" }}>{label}</td>
                               <td style={{ padding: "4px 8px", fontSize: "11px", fontWeight: i === 0 ? 700 : 400 }}>{val || "—"}</td>
+=======
+                            ["Candidate Name", profile?.full_name?.toUpperCase()],
+                            ["Father's Name", profile?.father_name || "—"],
+                            ["Mother's Name", profile?.mother_name || "—"],
+                            ["Date of Birth", profile?.dob || "—"],
+                            ["Gender", profile?.gender || "—"],
+                            ["Group", `${getGroupLabel(exam?.class)} (${getGroupClasses(exam?.class)})`],
+                          ].map(([label, val], i) => (
+                            <tr key={i} style={{ borderBottom: "1px solid #e0e0e0" }}>
+                              <td style={{ padding: "4px 8px", fontWeight: 600, width: "38%", background: "#f5f5f5", fontSize: "11px" }}>{label}</td>
+                              <td style={{ padding: "4px 8px", fontSize: "11px", fontWeight: i === 0 ? 700 : 400 }}>{val}</td>
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                             </tr>
                           ))}
                         </tbody>
@@ -205,6 +234,7 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                     {/* Photo */}
                     <div style={{ display: "flex", flexDirection: "column", alignItems: "center", gap: "4px" }}>
                       <div style={{ width: "95px", height: "115px", border: "2px solid #8B0000", borderRadius: "3px", overflow: "hidden", background: "#f5f5f5", display: "flex", alignItems: "center", justifyContent: "center" }}>
+<<<<<<< HEAD
                         {(() => {
                           const photoUrl = getPhotoUrl(applicationId);
                           return photoUrl ? (
@@ -224,6 +254,13 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                             <span style={{ fontSize: "9px", color: "#999", textAlign: "center", padding: "4px" }}>Candidate Photo</span>
                           );
                         })()}
+=======
+                        {profile?.photo_url ? (
+                          <img src={profile.photo_url} alt="Candidate" style={{ width: "100%", height: "100%", objectFit: "cover" }} />
+                        ) : (
+                          <span style={{ fontSize: "9px", color: "#999", textAlign: "center", padding: "4px" }}>Candidate Photo</span>
+                        )}
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                       </div>
                       <span style={{ fontSize: "8px", color: "#999" }}>Passport Photo</span>
                     </div>
@@ -235,12 +272,20 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                     <table style={{ width: "100%", borderCollapse: "collapse" }}>
                       <tbody>
                         {[
+<<<<<<< HEAD
                           ["Examination", exam?.title || "Not Available"],
+=======
+                          ["Examination", exam?.title],
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                           ["Exam Date", exam?.exam_date || "TBD"],
                           ["Exam Time", exam?.exam_time || "TBD"],
                           ["Duration", `${exam?.duration_minutes || 180} Minutes`],
                           ["Total Marks", exam?.total_marks || "—"],
+<<<<<<< HEAD
                           ["Exam Type", exam?.exam_type || "Offline"],
+=======
+                          ["Exam Type", (exam?.exam_type || "Offline")],
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                         ].map(([label, val], i) => (
                           <tr key={i} style={{ borderBottom: "1px solid #e0e0e0" }}>
                             <td style={{ padding: "4px 8px", fontWeight: 600, width: "35%", background: "#f5f5f5", fontSize: "11px" }}>{label}</td>
@@ -252,7 +297,11 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                   </div>
 
                   {/* Subject Schedule */}
+<<<<<<< HEAD
                   {subjects && subjects.length > 0 && (
+=======
+                  {subjects.length > 0 && (
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                     <div style={{ marginBottom: "12px" }}>
                       <h3 style={{ fontSize: "10px", fontWeight: 700, color: "#8B0000", borderBottom: "2px solid #8B0000", paddingBottom: "3px", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "1px" }}>Subject Schedule</h3>
                       <table style={{ width: "100%", borderCollapse: "collapse", border: "1px solid #ddd" }}>
@@ -279,6 +328,7 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                   )}
 
                   {/* Center Details */}
+<<<<<<< HEAD
                   {center && (
                     <div style={{ border: "2px dashed #8B0000", borderRadius: "4px", padding: "10px", marginBottom: "12px", background: "#fafafa" }}>
                       <h3 style={{ fontSize: "10px", fontWeight: 700, color: "#8B0000", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "1px" }}>Examination Center (परीक्षा केंद्र)</h3>
@@ -300,6 +350,27 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                       </table>
                     </div>
                   )}
+=======
+                  <div style={{ border: "2px dashed #8B0000", borderRadius: "4px", padding: "10px", marginBottom: "12px", background: "#fafafa" }}>
+                    <h3 style={{ fontSize: "10px", fontWeight: 700, color: "#8B0000", marginBottom: "6px", textTransform: "uppercase", letterSpacing: "1px" }}>Examination Center (परीक्षा केंद्र)</h3>
+                    <table style={{ width: "100%", borderCollapse: "collapse" }}>
+                      <tbody>
+                        {[
+                          ["Center Name", center?.center_name],
+                          ["Center Code", center?.center_code || "—"],
+                          ["Address", `${center?.address || ""}, ${center?.city || ""}, ${center?.state || ""} ${center?.pincode ? `- ${center.pincode}` : ""}`],
+                          ["Reporting Time", center?.reporting_time || "30 min before exam"],
+                          ["Gate Closing", center?.gate_closing_time || "At exam time"],
+                        ].map(([label, val], i) => (
+                          <tr key={i} style={{ borderBottom: "1px solid #e0e0e0" }}>
+                            <td style={{ padding: "4px 8px", fontWeight: 600, width: "35%", fontSize: "11px" }}>{label}</td>
+                            <td style={{ padding: "4px 8px", fontSize: "11px", fontWeight: i === 3 || i === 4 ? 700 : 400, color: i === 3 || i === 4 ? "#B22222" : "inherit" }}>{val}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
 
                   {/* Instructions */}
                   <div style={{ padding: "8px 10px", background: "#fff8e1", border: "1px solid #ffc107", borderRadius: "4px", fontSize: "10px", marginBottom: "12px" }}>
@@ -316,6 +387,7 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                   {/* Signature Section */}
                   <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", paddingTop: "12px", borderTop: "2px dashed #ccc" }}>
                     <div style={{ textAlign: "center", width: "150px" }}>
+<<<<<<< HEAD
                       {(() => {
                         const signatureUrl = getSignatureUrl(applicationId);
                         return signatureUrl ? (
@@ -324,6 +396,13 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                           <div style={{ height: "35px" }} />
                         );
                       })()}
+=======
+                      {profile?.signature_url ? (
+                        <img src={profile.signature_url} alt="Signature" style={{ height: "35px", margin: "0 auto 4px" }} />
+                      ) : (
+                        <div style={{ height: "35px" }} />
+                      )}
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                       <div style={{ borderTop: "1px solid #333", paddingTop: "3px" }}>
                         <p style={{ fontSize: "9px", fontWeight: 600 }}>Candidate's Signature</p>
                       </div>
@@ -338,7 +417,11 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
 
                   {/* Footer */}
                   <div style={{ marginTop: "10px", textAlign: "center", fontSize: "9px", color: "#999", borderTop: "1px solid #e0e0e0", paddingTop: "6px" }}>
+<<<<<<< HEAD
                     <p>Computer-generated document. | Generated: {card.generated_at ? new Date(card.generated_at).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" }) : new Date().toLocaleDateString()}</p>
+=======
+                    <p>Computer-generated document. | Generated: {new Date(card.generated_at).toLocaleDateString("en-IN", { day: "2-digit", month: "long", year: "numeric" })}</p>
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
                   </div>
                 </div>
               </div>
@@ -348,4 +431,8 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
       })}
     </div>
   );
+<<<<<<< HEAD
 }
+=======
+}
+>>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
