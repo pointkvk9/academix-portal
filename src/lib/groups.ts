@@ -24,8 +24,4 @@ export function getGroupForClass(cls: string): string {
 // Get full group details
 export function getGroupDetails(value: string) {
   return GROUPS.find(g => g.value === value);
-<<<<<<< HEAD
 }
-=======
-}
->>>>>>> f823e975c706369e525a55df829e78a04a0a64bc
