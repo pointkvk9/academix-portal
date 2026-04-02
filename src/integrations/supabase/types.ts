@@ -66,6 +66,39 @@ export type Database = {
           },
         ]
       }
+      donations: {
+        Row: {
+          amount: number | null
+          created_at: string | null
+          email: string | null
+          id: string
+          mobile: string | null
+          name: string | null
+          order_id: string | null
+          payment_id: string | null
+        }
+        Insert: {
+          amount?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          name?: string | null
+          order_id?: string | null
+          payment_id?: string | null
+        }
+        Update: {
+          amount?: number | null
+          created_at?: string | null
+          email?: string | null
+          id?: string
+          mobile?: string | null
+          name?: string | null
+          order_id?: string | null
+          payment_id?: string | null
+        }
+        Relationships: []
+      }
       exam_applications: {
         Row: {
           address_details: Json | null
@@ -339,51 +372,39 @@ export type Database = {
       profiles: {
         Row: {
           class: string | null
-          created_at: string
-          dob: string | null
+          created_at: string | null
           email: string | null
           father_name: string | null
-          full_name: string
+          full_name: string | null
           gender: string | null
           id: string
           mobile: string | null
-          mother_name: string | null
-          photo_url: string | null
-          signature_url: string | null
-          updated_at: string
-          user_id: string
+          updated_at: string | null
+          user_id: string | null
         }
         Insert: {
           class?: string | null
-          created_at?: string
-          dob?: string | null
+          created_at?: string | null
           email?: string | null
           father_name?: string | null
-          full_name?: string
+          full_name?: string | null
           gender?: string | null
           id?: string
           mobile?: string | null
-          mother_name?: string | null
-          photo_url?: string | null
-          signature_url?: string | null
-          updated_at?: string
-          user_id: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Update: {
           class?: string | null
-          created_at?: string
-          dob?: string | null
+          created_at?: string | null
           email?: string | null
           father_name?: string | null
-          full_name?: string
+          full_name?: string | null
           gender?: string | null
           id?: string
           mobile?: string | null
-          mother_name?: string | null
-          photo_url?: string | null
-          signature_url?: string | null
-          updated_at?: string
-          user_id?: string
+          updated_at?: string | null
+          user_id?: string | null
         }
         Relationships: []
       }
