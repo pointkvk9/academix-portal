@@ -1,6 +1,6 @@
 import { serve } from "https://deno.land/std@0.168.0/http/server.ts";
 import { createClient } from "https://esm.sh/@supabase/supabase-js@2";
-import Razorpay from "npm:razorpay@2.9.2";
+import { createHmac } from "https://deno.land/std@0.168.0/node/crypto.ts";
 
 const corsHeaders = {
   "Access-Control-Allow-Origin": "*",
@@ -33,13 +33,26 @@ serve(async (req) => {
     const keySecret = Deno.env.get("RAZORPAY_KEY_SECRET");
     if (!keyId || !keySecret) throw new Error("Razorpay keys not configured");
 
-    const razorpay = new Razorpay({ key_id: keyId, key_secret: keySecret });
-
-    const order = await razorpay.orders.create({
-      amount: Math.round(amount * 100),
-      currency: "INR",
-      receipt: application_id,
+    // Create Razorpay order via REST API instead of npm package
+    const orderResponse = await fetch("https://api.razorpay.com/v1/orders", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": "Basic " + btoa(`${keyId}:${keySecret}`),
+      },
+      body: JSON.stringify({
+        amount: Math.round(amount * 100),
+        currency: "INR",
+        receipt: application_id,
+      }),
     });
+
+    if (!orderResponse.ok) {
+      const errorData = await orderResponse.text();
+      throw new Error(`Razorpay error: ${errorData}`);
+    }
+
+    const order = await orderResponse.json();
 
     // Create payment record
     await supabase.from("payments").insert({
