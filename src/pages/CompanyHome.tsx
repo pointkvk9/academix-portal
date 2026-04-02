@@ -37,7 +37,7 @@ import {
   Trophy,
   Menu,
   X,
-  Donate,
+  Home
   BookOpen,
   TreePalm,
   Home
