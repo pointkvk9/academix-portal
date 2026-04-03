@@ -60,6 +60,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="create"><ClipboardList className="mr-1 h-4 w-4" /> Create Exam</TabsTrigger>
             <TabsTrigger value="submissions"><Users className="mr-1 h-4 w-4" /> Submissions</TabsTrigger>
             <TabsTrigger value="centers"><MapPin className="mr-1 h-4 w-4" /> Centers</TabsTrigger>
+            <TabsTrigger value="donations"><Heart className="mr-1 h-4 w-4" /> Donations & Members</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
