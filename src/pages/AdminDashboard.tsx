@@ -128,6 +128,11 @@ export default function AdminDashboard() {
           <TabsContent value="centers">
             <ManageCenters exams={exams} selectedExamId={selectedExam} onSelectExam={setSelectedExam} />
           </TabsContent>
+
+          <TabsContent value="donations">
+            <DonationAnalytics />
+          </TabsContent>
+          </TabsContent>
         </Tabs>
       </div>
     </div>
