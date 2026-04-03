@@ -10,7 +10,8 @@ import { ExamList } from "@/components/admin/ExamList";
 import { ExamSubmissions } from "@/components/admin/ExamSubmissions";
 import { ManageCenters } from "@/components/admin/ManageCenters";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
-import { LogOut, FileText, Users, MapPin, ClipboardList, LayoutDashboard, BookOpen, BarChart3 } from "lucide-react";
+import { DonationAnalytics } from "@/components/admin/DonationAnalytics";
+import { LogOut, FileText, Users, MapPin, ClipboardList, LayoutDashboard, BookOpen, BarChart3, Heart } from "lucide-react";
 import { getGroupLabel } from "@/lib/groups";
 
 export default function AdminDashboard() {
