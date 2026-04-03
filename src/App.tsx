@@ -10,6 +10,8 @@ import Auth from "./pages/Auth";
 import AdminDashboard from "./pages/AdminDashboard";
 import StudentDashboard from "./pages/StudentDashboard";
 import ExamApplicationForm from "./pages/ExamApplicationForm";
+import DonationPage from "./pages/DonationPage";
+import MembershipPage from "./pages/MembershipPage";
 import NotFound from "./pages/NotFound";
 
 const queryClient = new QueryClient();
@@ -37,37 +39,20 @@ const App = () => (
       <BrowserRouter>
         <AuthProvider>
           <Routes>
-            {/* Company Main Website */}
             <Route path="/" element={<CompanyHome />} />
-
-            {/* Exam Portal */}
             <Route path="/exam" element={<Index />} />
-
-            {/* Login */}
             <Route path="/auth" element={<Auth />} />
-
-            {/* Dashboard */}
+            <Route path="/donate" element={<DonationPage />} />
+            <Route path="/membership" element={<MembershipPage />} />
             <Route path="/dashboard" element={
-              <ProtectedRoute>
-                <DashboardRouter />
-              </ProtectedRoute>
+              <ProtectedRoute><DashboardRouter /></ProtectedRoute>
             } />
-
-            {/* Admin */}
             <Route path="/admin" element={
-              <ProtectedRoute requiredRole="admin">
-                <AdminDashboard />
-              </ProtectedRoute>
+              <ProtectedRoute requiredRole="admin"><AdminDashboard /></ProtectedRoute>
             } />
-
-            {/* Apply Exam */}
             <Route path="/apply/:examId" element={
-              <ProtectedRoute>
-                <ExamApplicationForm />
-              </ProtectedRoute>
+              <ProtectedRoute><ExamApplicationForm /></ProtectedRoute>
             } />
-
-            {/* 404 */}
             <Route path="*" element={<NotFound />} />
           </Routes>
         </AuthProvider>

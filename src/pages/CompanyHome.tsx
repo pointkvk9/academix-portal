@@ -199,31 +199,28 @@ const CompanyHome = () => {
               <button onClick={() => scrollToSection('initiatives')} className="text-left py-2 hover:text-primary transition-colors">Initiatives</button>
               <button onClick={() => scrollToSection('members')} className="text-left py-2 hover:text-primary transition-colors">Founding Members</button>
               <button onClick={() => scrollToSection('contact')} className="text-left py-2 hover:text-primary transition-colors">Contact</button>
-              <Button className="w-full mt-4" onClick={() => navigate("/exam")}>
-                Exam Portal
-              </Button>
+              <Button className="w-full" variant="outline" onClick={() => navigate("/donate")}>💝 Donate</Button>
+              <Button className="w-full" variant="outline" onClick={() => navigate("/membership")}>👥 Membership</Button>
+              <Button className="w-full" onClick={() => navigate("/exam")}>🎓 Exam Portal</Button>
             </div>
           </div>
         </div>
       )}
       
-      {/* Exam Portal Notification Bar */}
+      {/* Marquee Registration Bar */}
       <div 
-        className="bg-green-600 hover:bg-yellow-300 cursor-pointer transition-colors py-2 md:py-3 px-3 md:px-4 border-b border-red-700"
+        className="bg-green-600 hover:bg-yellow-400 cursor-pointer transition-colors py-2 border-b border-red-700 overflow-hidden"
         onClick={() => setShowExamPopup(true)}
       >
-        <div className="container mx-auto">
-          <div className="flex items-center justify-center gap-2 md:gap-3 flex-wrap">
-            <div className="animate-pulse flex-shrink-0">
-              <svg className="w-4 h-4 md:w-5 md:h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-              </svg>
-            </div>
-            <p className="text-white text-xs md:text-sm lg:text-base font-bold text-center">
-              📢 EXAM PORTAL | सामान्य ज्ञान प्रतियोगिता 2026-27 | रजिस्ट्रेशन शुरू — Click Here!
-            </p>
-            <ChevronRight className="h-3 w-3 md:h-4 md:w-4 text-white flex-shrink-0" />
-          </div>
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+          {[1, 2, 3].map(i => (
+            <span key={i} className="inline-flex items-center gap-2 text-white text-xs md:text-sm font-bold">
+              📢 EXAM PORTAL | सामान्य ज्ञान प्रतियोगिता 2026-27 | रजिस्ट्रेशन शुरू — Click Here! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              🎓 STUDENT REGISTRATION OPEN — Apply Now! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              💰 DONATE to Support Community — Click Here! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              👥 BECOME A MEMBER — Join KVK Sanstha! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+            </span>
+          ))}
         </div>
       </div>
 

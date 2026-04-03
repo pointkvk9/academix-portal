@@ -10,7 +10,8 @@ import { ExamList } from "@/components/admin/ExamList";
 import { ExamSubmissions } from "@/components/admin/ExamSubmissions";
 import { ManageCenters } from "@/components/admin/ManageCenters";
 import { AnalyticsDashboard } from "@/components/admin/AnalyticsDashboard";
-import { LogOut, FileText, Users, MapPin, ClipboardList, LayoutDashboard, BookOpen, BarChart3 } from "lucide-react";
+import { DonationAnalytics } from "@/components/admin/DonationAnalytics";
+import { LogOut, FileText, Users, MapPin, ClipboardList, LayoutDashboard, BookOpen, BarChart3, Heart } from "lucide-react";
 import { getGroupLabel } from "@/lib/groups";
 
 export default function AdminDashboard() {
@@ -59,6 +60,7 @@ export default function AdminDashboard() {
             <TabsTrigger value="create"><ClipboardList className="mr-1 h-4 w-4" /> Create Exam</TabsTrigger>
             <TabsTrigger value="submissions"><Users className="mr-1 h-4 w-4" /> Submissions</TabsTrigger>
             <TabsTrigger value="centers"><MapPin className="mr-1 h-4 w-4" /> Centers</TabsTrigger>
+            <TabsTrigger value="donations"><Heart className="mr-1 h-4 w-4" /> Donations & Members</TabsTrigger>
           </TabsList>
 
           <TabsContent value="dashboard">
@@ -125,6 +127,10 @@ export default function AdminDashboard() {
 
           <TabsContent value="centers">
             <ManageCenters exams={exams} selectedExamId={selectedExam} onSelectExam={setSelectedExam} />
+          </TabsContent>
+
+          <TabsContent value="donations">
+            <DonationAnalytics />
           </TabsContent>
         </Tabs>
       </div>
