@@ -15,7 +15,7 @@ interface DonationCertificateProps {
   };
 }
 
-export function DonationCertificate({ donation }: DonationCertificateProps) {
+  export function DonationCertificate({ donation }: DonationCertificateProps) {
   const certRef = useRef<HTMLDivElement>(null);
   const [settings, setSettings] = useState<Record<string, { setting_value: string; file_url: string }>>({});
 
