@@ -2,7 +2,7 @@ import { useState, useEffect, useRef } from "react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Download } from "lucide-react";
-import { downloadElementAsPDF } from "@/lib/pdfDownload";
+import { downloadElementAsPdf } from "@/lib/pdfDownload";
 
 interface DonationCertificateProps {
   donation: {
