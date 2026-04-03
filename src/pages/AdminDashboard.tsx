@@ -132,7 +132,6 @@ export default function AdminDashboard() {
           <TabsContent value="donations">
             <DonationAnalytics />
           </TabsContent>
-          </TabsContent>
         </Tabs>
       </div>
     </div>
