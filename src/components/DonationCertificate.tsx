@@ -94,7 +94,7 @@ export function DonationCertificate({ donation }: DonationCertificateProps) {
       </div>
 
       <div className="flex justify-center mt-4">
-        <Button onClick={() => downloadElementAsPDF(certRef.current!, `Donation_Certificate_${donation.name}.pdf`)}>
+        <Button onClick={() => downloadElementAsPdf(certRef.current!, `Donation_Certificate_${donation.name}.pdf`)}>
           <Download className="mr-2 h-4 w-4" /> Download Certificate (PDF)
         </Button>
       </div>
