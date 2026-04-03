@@ -14,6 +14,33 @@ export type Database = {
   }
   public: {
     Tables: {
+      admin_settings: {
+        Row: {
+          file_url: string | null
+          id: string
+          setting_key: string
+          setting_value: string | null
+          updated_at: string
+          updated_by: string | null
+        }
+        Insert: {
+          file_url?: string | null
+          id?: string
+          setting_key: string
+          setting_value?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Update: {
+          file_url?: string | null
+          id?: string
+          setting_key?: string
+          setting_value?: string | null
+          updated_at?: string
+          updated_by?: string | null
+        }
+        Relationships: []
+      }
       admit_cards: {
         Row: {
           application_id: string
@@ -70,32 +97,41 @@ export type Database = {
         Row: {
           amount: number | null
           created_at: string | null
+          donor_address: string | null
+          donor_city: string | null
           email: string | null
           id: string
           mobile: string | null
           name: string | null
           order_id: string | null
           payment_id: string | null
+          purpose: string | null
         }
         Insert: {
           amount?: number | null
           created_at?: string | null
+          donor_address?: string | null
+          donor_city?: string | null
           email?: string | null
           id?: string
           mobile?: string | null
           name?: string | null
           order_id?: string | null
           payment_id?: string | null
+          purpose?: string | null
         }
         Update: {
           amount?: number | null
           created_at?: string | null
+          donor_address?: string | null
+          donor_city?: string | null
           email?: string | null
           id?: string
           mobile?: string | null
           name?: string | null
           order_id?: string | null
           payment_id?: string | null
+          purpose?: string | null
         }
         Relationships: []
       }
@@ -321,6 +357,75 @@ export type Database = {
           title?: string
           total_marks?: number | null
           total_questions?: number | null
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      members: {
+        Row: {
+          address: string | null
+          amount: number
+          city: string | null
+          created_at: string
+          date_of_birth: string | null
+          email: string
+          father_name: string | null
+          full_name: string
+          gender: string | null
+          id: string
+          member_type: string
+          mobile: string
+          occupation: string | null
+          payment_status: string
+          photo_url: string | null
+          pincode: string | null
+          razorpay_order_id: string | null
+          razorpay_payment_id: string | null
+          state: string | null
+          updated_at: string
+        }
+        Insert: {
+          address?: string | null
+          amount?: number
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email: string
+          father_name?: string | null
+          full_name: string
+          gender?: string | null
+          id?: string
+          member_type?: string
+          mobile: string
+          occupation?: string | null
+          payment_status?: string
+          photo_url?: string | null
+          pincode?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          state?: string | null
+          updated_at?: string
+        }
+        Update: {
+          address?: string | null
+          amount?: number
+          city?: string | null
+          created_at?: string
+          date_of_birth?: string | null
+          email?: string
+          father_name?: string | null
+          full_name?: string
+          gender?: string | null
+          id?: string
+          member_type?: string
+          mobile?: string
+          occupation?: string | null
+          payment_status?: string
+          photo_url?: string | null
+          pincode?: string | null
+          razorpay_order_id?: string | null
+          razorpay_payment_id?: string | null
+          state?: string | null
           updated_at?: string
         }
         Relationships: []
