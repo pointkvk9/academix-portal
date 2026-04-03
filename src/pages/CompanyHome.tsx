@@ -199,9 +199,9 @@ const CompanyHome = () => {
               <button onClick={() => scrollToSection('initiatives')} className="text-left py-2 hover:text-primary transition-colors">Initiatives</button>
               <button onClick={() => scrollToSection('members')} className="text-left py-2 hover:text-primary transition-colors">Founding Members</button>
               <button onClick={() => scrollToSection('contact')} className="text-left py-2 hover:text-primary transition-colors">Contact</button>
-              <Button className="w-full mt-4" onClick={() => navigate("/exam")}>
-                Exam Portal
-              </Button>
+              <Button className="w-full" variant="outline" onClick={() => navigate("/donate")}>💝 Donate</Button>
+              <Button className="w-full" variant="outline" onClick={() => navigate("/membership")}>👥 Membership</Button>
+              <Button className="w-full" onClick={() => navigate("/exam")}>🎓 Exam Portal</Button>
             </div>
           </div>
         </div>
