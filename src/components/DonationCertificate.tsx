@@ -15,8 +15,7 @@ interface DonationCertificateProps {
   };
 }
 
-  export function DonationCertificate({ donation }: DonationCertificateProps) {
-  const certRef = useRef<HTMLDivElement>(null);
+export function DonationCertificate({ donation }: DonationCertificateProps) {
   const [settings, setSettings] = useState<Record<string, { setting_value: string; file_url: string }>>({});
 
   useEffect(() => {
@@ -35,13 +34,11 @@ interface DonationCertificateProps {
   const sealUrl = settings.certificate_seal_url?.file_url;
   const signatoryName = settings.certificate_signatory_name?.setting_value || "Secretary, KVK Sanstha";
   const signatoryDesignation = settings.certificate_signatory_designation?.setting_value || "Authorized Signatory";
-
   const certNumber = `KVK/DON/${new Date(donation.created_at).getFullYear()}/${donation.payment_id?.slice(-6) || "000000"}`;
 
   return (
     <div>
-      <div ref={certRef} className="bg-white p-6 md:p-10 border-4 border-double border-accent/60 rounded-lg max-w-2xl mx-auto" style={{ fontFamily: "'Noto Sans', sans-serif" }}>
-        {/* Header Border */}
+      <div id="donation-certificate" className="bg-white p-6 md:p-10 border-4 border-double border-accent/60 rounded-lg max-w-2xl mx-auto" style={{ fontFamily: "'Noto Sans', sans-serif" }}>
         <div className="border-b-2 border-accent/40 pb-4 mb-6 text-center">
           <h2 className="text-2xl md:text-3xl font-black text-primary mb-1" style={{ fontFamily: "'Playfair Display', serif" }}>
             किसान विकास कार्यदाई संस्था
@@ -66,10 +63,9 @@ interface DonationCertificateProps {
         </div>
 
         <p className="text-xs text-center text-muted-foreground italic mb-8">
-          We deeply appreciate your support for the welfare and development of our community. May your generosity inspire others.
+          We deeply appreciate your support for the welfare and development of our community.
         </p>
 
-        {/* Signature & Seal */}
         <div className="flex items-end justify-between pt-4 border-t border-muted mt-8">
           <div className="text-center">
             {signUrl ? (
@@ -94,7 +90,7 @@ interface DonationCertificateProps {
       </div>
 
       <div className="flex justify-center mt-4">
-        <Button onClick={() => downloadElementAsPdf(certRef.current!, `Donation_Certificate_${donation.name}.pdf`)}>
+        <Button onClick={() => downloadElementAsPdf("donation-certificate", `Donation_Certificate_${donation.name}`)}>
           <Download className="mr-2 h-4 w-4" /> Download Certificate (PDF)
         </Button>
       </div>
