@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { toast } from "sonner";
-import { Shield, UserPlus, LogIn, Eye, EyeOff, Info, Mail } from "lucide-react";
+import { Shield, UserPlus, LogIn, Eye, EyeOff, Info, Mail, CheckCircle } from "lucide-react";
 import { GROUPS } from "@/lib/groups";
 
 export default function Auth() {
@@ -22,7 +22,7 @@ export default function Auth() {
   const [gender, setGender] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
-  const [otp, setOtp] = useState("");
+  const [countdown, setCountdown] = useState(10);
   const [pendingRegistration, setPendingRegistration] = useState<{
     fullName: string;
     fatherName: string;
@@ -67,16 +67,17 @@ export default function Auth() {
         class: studentGroup,
       };
 
-      const { error: otpError } = await supabase.auth.signInWithOtp({
+      const { error: signUpError } = await supabase.auth.signUp({
         email,
+        password,
         options: {
-          shouldCreateUser: true,
           data: registrationMetadata,
+          emailRedirectTo: `${window.location.origin}/dashboard`,
         },
       });
       
-      if (otpError) {
-        toast.error(otpError.message);
+      if (signUpError) {
+        toast.error(signUpError.message);
         setLoading(false);
         return;
       }
@@ -90,114 +91,35 @@ export default function Auth() {
         password,
       });
       setMode("verify");
-      toast.success("OTP sent to your email! Please check your inbox.");
+      
+      // Start countdown timer
+      let timer = 10;
+      const interval = setInterval(() => {
+        timer--;
+        setCountdown(timer);
+        if (timer <= 0) {
+          clearInterval(interval);
+          // Reset to login page
+          setMode("login");
+          setEmail("");
+          setPassword("");
+          setFullName("");
+          setFatherName("");
+          setMobile("");
+          setStudentGroup("");
+          setGender("");
+          setPendingRegistration(null);
+          toast.info("Please login after verifying your email");
+        }
+      }, 1000);
+      
+      toast.success("Verification link sent to your email! Please check your inbox.");
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("An error occurred during registration.");
     } finally {
       setLoading(false);
     }
-  };
-
-  const handleVerifyOtp = async () => {
-    if (!otp || otp.length < 6) {
-      toast.error("Please enter the 6-digit OTP");
-      return;
-    }
-    if (!pendingRegistration) {
-      toast.error("Please register again to receive a fresh OTP.");
-      setMode("register");
-      return;
-    }
-    setLoading(true);
-    try {
-      const { data, error } = await supabase.auth.verifyOtp({
-        email,
-        token: otp,
-        type: "email",
-      });
-      if (error) {
-        toast.error(error.message);
-      } else {
-        const { error: passwordError } = await supabase.auth.updateUser({
-          password: pendingRegistration.password,
-          data: {
-            full_name: pendingRegistration.fullName,
-            father_name: pendingRegistration.fatherName,
-            mobile: pendingRegistration.mobile,
-            gender: pendingRegistration.gender,
-            class: pendingRegistration.studentGroup,
-          },
-        });
-
-        if (passwordError) {
-          toast.error(passwordError.message);
-          return;
-        }
-
-        if (data.user) {
-          const { data: existingProfile } = await supabase
-            .from("profiles")
-            .select("id")
-            .eq("user_id", data.user.id)
-            .maybeSingle();
-
-          const profilePayload = {
-            user_id: data.user.id,
-            email,
-            full_name: pendingRegistration.fullName,
-            father_name: pendingRegistration.fatherName,
-            mobile: pendingRegistration.mobile,
-            gender: pendingRegistration.gender,
-            class: pendingRegistration.studentGroup,
-            updated_at: new Date().toISOString(),
-          };
-
-          if (existingProfile?.id) {
-            await supabase.from("profiles").update(profilePayload).eq("id", existingProfile.id);
-          } else {
-            await supabase.from("profiles").insert(profilePayload as any);
-          }
-        }
-
-        toast.success("Email verified successfully!");
-        setOtp("");
-        setFullName("");
-        setFatherName("");
-        setMobile("");
-        setStudentGroup("");
-        setGender("");
-        setPassword("");
-        setPendingRegistration(null);
-        navigate("/dashboard");
-      }
-    } catch (err) {
-      toast.error("Verification failed. Please try again.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  const handleResendOtp = async () => {
-    setLoading(true);
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        shouldCreateUser: true,
-        data: pendingRegistration
-          ? {
-              full_name: pendingRegistration.fullName,
-              father_name: pendingRegistration.fatherName,
-              mobile: pendingRegistration.mobile,
-              gender: pendingRegistration.gender,
-              class: pendingRegistration.studentGroup,
-            }
-          : undefined,
-      },
-    });
-    if (error) toast.error(error.message);
-    else toast.success("OTP resent to your email!");
-    setLoading(false);
   };
 
   return (
@@ -210,45 +132,39 @@ export default function Auth() {
               {mode === "verify" ? <Mail className="w-7 h-7 text-primary" /> : <Shield className="w-7 h-7 text-primary" />}
             </div>
             <CardTitle className="text-xl">
-              {mode === "login" ? "Student / Admin Login" : mode === "register" ? "Student Registration (पंजीकरण)" : "Verify Email (OTP)"}
+              {mode === "login" ? "Student / Admin Login" : mode === "register" ? "Student Registration (पंजीकरण)" : "Verify Your Email"}
             </CardTitle>
             <CardDescription>
               {mode === "login"
                 ? "Enter your credentials to access the examination portal"
                 : mode === "register"
                 ? "Create your account to apply for examinations"
-                : `Enter the 6-digit OTP sent to ${email}`}
+                : `We've sent a verification link to ${email}`}
             </CardDescription>
           </CardHeader>
           <CardContent>
             {mode === "verify" ? (
               <div className="space-y-4">
-                <div className="bg-info/10 border border-info/30 rounded-md p-4 text-center">
-                  <Mail className="h-8 w-8 text-info mx-auto mb-2" />
-                  <p className="text-sm font-medium">OTP sent to <span className="text-primary font-bold">{email}</span></p>
-                  <p className="text-xs text-muted-foreground mt-1">Check your inbox and enter the 6-digit code sent for verification</p>
-                </div>
-                <div className="space-y-2">
-                  <Label>Enter OTP *</Label>
-                  <Input 
-                    value={otp} 
-                    onChange={e => setOtp(e.target.value.replace(/\D/g, "").slice(0, 6))} 
-                    placeholder="Enter 6-digit OTP" 
-                    maxLength={6}
-                    className="text-center text-2xl tracking-[0.5em] font-bold"
-                  />
-                </div>
-                <Button className="w-full" size="lg" onClick={handleVerifyOtp} disabled={loading}>
-                  {loading ? "Verifying..." : "Verify OTP & Complete Registration"}
-                </Button>
-                <div className="text-center text-sm">
-                  <button onClick={handleResendOtp} disabled={loading} className="text-primary font-semibold hover:underline">
-                    Resend OTP
-                  </button>
-                  <span className="mx-2 text-muted-foreground">|</span>
-                  <button onClick={() => setMode("register")} className="text-muted-foreground hover:underline">
-                    Back to Registration
-                  </button>
+                <div className="bg-info/10 border border-info/30 rounded-md p-6 text-center">
+                  <Mail className="h-12 w-12 text-info mx-auto mb-3" />
+                  <p className="text-sm font-medium mb-2">Verification link sent to:</p>
+                  <p className="text-primary font-bold mb-3">{email}</p>
+                  <div className="bg-warning/10 border border-warning/30 rounded-md p-3 mt-4">
+                    <p className="text-sm text-muted-foreground">
+                      Please check your email and click on the verification link to activate your account.
+                    </p>
+                  </div>
+                  <div className="mt-6 pt-4 border-t">
+                    <p className="text-sm text-muted-foreground">
+                      Redirecting to login page in <span className="font-bold text-primary text-lg">{countdown}</span> seconds...
+                    </p>
+                    <div className="w-full bg-gray-200 rounded-full h-2 mt-3">
+                      <div 
+                        className="bg-primary h-2 rounded-full transition-all duration-1000"
+                        style={{ width: `${(countdown / 10) * 100}%` }}
+                      />
+                    </div>
+                  </div>
                 </div>
               </div>
             ) : (
@@ -301,7 +217,7 @@ export default function Auth() {
                       </div>
                       <div className="bg-accent/10 border border-accent/30 rounded-md p-3 text-xs text-muted-foreground flex gap-2">
                         <Info className="h-4 w-4 text-accent flex-shrink-0 mt-0.5" />
-                        <span>After registration, a 6-digit OTP will be sent to your email for verification.</span>
+                        <span>After registration, a verification link will be sent to your email. Please check your inbox to verify your account.</span>
                       </div>
                     </>
                   )}
@@ -322,7 +238,7 @@ export default function Auth() {
                     {loading ? "Please wait..." : mode === "login" ? (
                       <><LogIn className="mr-2 h-4 w-4" /> Sign In</>
                     ) : (
-                      <><UserPlus className="mr-2 h-4 w-4" /> Register & Get OTP</>
+                      <><UserPlus className="mr-2 h-4 w-4" /> Register & Send Verification Link</>
                     )}
                   </Button>
                 </form>
