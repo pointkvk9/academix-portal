@@ -23,7 +23,14 @@ export default function Auth() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [otp, setOtp] = useState("");
-  const [pendingSignup, setPendingSignup] = useState<any>(null);
+  const [pendingRegistration, setPendingRegistration] = useState<{
+    fullName: string;
+    fatherName: string;
+    mobile: string;
+    studentGroup: string;
+    gender: string;
+    password: string;
+  } | null>(null);
   const navigate = useNavigate();
 
   const handleLogin = async (e: React.FormEvent) => {
@@ -52,32 +59,38 @@ export default function Auth() {
     setLoading(true);
     
     try {
-     const { data: signUpData, error: signUpError } = await supabase.auth.signUp({
-  email,
-  password,
-  options: {
-    emailRedirectTo: undefined,
-    data: { 
-      full_name: fullName,
-      father_name: fatherName,
-      mobile: mobile,
-      gender: gender,
-      class: studentGroup
-    },
-  },
-});
+      const registrationMetadata = {
+        full_name: fullName,
+        father_name: fatherName,
+        mobile,
+        gender,
+        class: studentGroup,
+      };
+
+      const { error: otpError } = await supabase.auth.signInWithOtp({
+        email,
+        options: {
+          shouldCreateUser: true,
+          data: registrationMetadata,
+        },
+      });
       
-      if (signUpError) {
-        toast.error(signUpError.message);
+      if (otpError) {
+        toast.error(otpError.message);
         setLoading(false);
         return;
       }
-      
-      if (signUpData.user) {
-        setPendingSignup(signUpData);
-        setMode("verify");
-        toast.success("OTP sent to your email! Please check your inbox.");
-      }
+
+      setPendingRegistration({
+        fullName,
+        fatherName,
+        mobile,
+        studentGroup,
+        gender,
+        password,
+      });
+      setMode("verify");
+      toast.success("OTP sent to your email! Please check your inbox.");
     } catch (error) {
       console.error("Registration error:", error);
       toast.error("An error occurred during registration.");
@@ -91,18 +104,63 @@ export default function Auth() {
       toast.error("Please enter the 6-digit OTP");
       return;
     }
+    if (!pendingRegistration) {
+      toast.error("Please register again to receive a fresh OTP.");
+      setMode("register");
+      return;
+    }
     setLoading(true);
     try {
-      const { error } = await supabase.auth.verifyOtp({
+      const { data, error } = await supabase.auth.verifyOtp({
         email,
         token: otp,
-        type: "signup",
+        type: "email",
       });
       if (error) {
         toast.error(error.message);
       } else {
-        toast.success("Email verified! You can now login.");
-        setMode("login");
+        const { error: passwordError } = await supabase.auth.updateUser({
+          password: pendingRegistration.password,
+          data: {
+            full_name: pendingRegistration.fullName,
+            father_name: pendingRegistration.fatherName,
+            mobile: pendingRegistration.mobile,
+            gender: pendingRegistration.gender,
+            class: pendingRegistration.studentGroup,
+          },
+        });
+
+        if (passwordError) {
+          toast.error(passwordError.message);
+          return;
+        }
+
+        if (data.user) {
+          const { data: existingProfile } = await supabase
+            .from("profiles")
+            .select("id")
+            .eq("user_id", data.user.id)
+            .maybeSingle();
+
+          const profilePayload = {
+            user_id: data.user.id,
+            email,
+            full_name: pendingRegistration.fullName,
+            father_name: pendingRegistration.fatherName,
+            mobile: pendingRegistration.mobile,
+            gender: pendingRegistration.gender,
+            class: pendingRegistration.studentGroup,
+            updated_at: new Date().toISOString(),
+          };
+
+          if (existingProfile?.id) {
+            await supabase.from("profiles").update(profilePayload).eq("id", existingProfile.id);
+          } else {
+            await supabase.from("profiles").insert(profilePayload as any);
+          }
+        }
+
+        toast.success("Email verified successfully!");
         setOtp("");
         setFullName("");
         setFatherName("");
@@ -110,6 +168,8 @@ export default function Auth() {
         setStudentGroup("");
         setGender("");
         setPassword("");
+        setPendingRegistration(null);
+        navigate("/dashboard");
       }
     } catch (err) {
       toast.error("Verification failed. Please try again.");
@@ -120,7 +180,21 @@ export default function Auth() {
 
   const handleResendOtp = async () => {
     setLoading(true);
-    const { error } = await supabase.auth.resend({ type: "signup", email });
+    const { error } = await supabase.auth.signInWithOtp({
+      email,
+      options: {
+        shouldCreateUser: true,
+        data: pendingRegistration
+          ? {
+              full_name: pendingRegistration.fullName,
+              father_name: pendingRegistration.fatherName,
+              mobile: pendingRegistration.mobile,
+              gender: pendingRegistration.gender,
+              class: pendingRegistration.studentGroup,
+            }
+          : undefined,
+      },
+    });
     if (error) toast.error(error.message);
     else toast.success("OTP resent to your email!");
     setLoading(false);
@@ -152,7 +226,7 @@ export default function Auth() {
                 <div className="bg-info/10 border border-info/30 rounded-md p-4 text-center">
                   <Mail className="h-8 w-8 text-info mx-auto mb-2" />
                   <p className="text-sm font-medium">OTP sent to <span className="text-primary font-bold">{email}</span></p>
-                  <p className="text-xs text-muted-foreground mt-1">Check your inbox and enter the 6-digit code</p>
+                  <p className="text-xs text-muted-foreground mt-1">Check your inbox and enter the 6-digit code sent for verification</p>
                 </div>
                 <div className="space-y-2">
                   <Label>Enter OTP *</Label>

@@ -9,7 +9,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Badge } from "@/components/ui/badge";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { Heart, IndianRupee, Award, Shield, ChevronLeft, CheckCircle, Download } from "lucide-react";
+import { Heart, IndianRupee, Award, Shield, ChevronLeft, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { DonationCertificate } from "@/components/DonationCertificate";
 
@@ -49,10 +49,16 @@ export default function DonationPage() {
     }
     setLoading(true);
     try {
+      if (!window.Razorpay) {
+        throw new Error("Payment gateway is still loading. Please try again in a moment.");
+      }
+
       const { data, error } = await supabase.functions.invoke("create-donation-order", {
         body: { amount: Number(amount), name, email, mobile, purpose, type: "donation" },
       });
       if (error) throw error;
+
+      const primaryColor = getComputedStyle(document.documentElement).getPropertyValue("--primary").trim();
 
       const options = {
         key: data.key_id,
@@ -62,19 +68,36 @@ export default function DonationPage() {
         description: purpose,
         order_id: data.order_id,
         handler: async (response: any) => {
-          const donation = {
-            name, email, mobile, amount: Number(amount),
-            order_id: data.order_id,
-            payment_id: response.razorpay_payment_id,
-            donor_address: address, donor_city: city, purpose,
-          };
-          await supabase.from("donations").insert(donation);
-          setDonationData({ ...donation, created_at: new Date().toISOString() });
-          setDonationComplete(true);
-          toast.success("Donation successful! Thank you for your generosity 🙏");
+          try {
+            const donation = {
+              name,
+              email,
+              mobile,
+              amount: Number(amount),
+              order_id: data.order_id,
+              payment_id: response.razorpay_payment_id,
+              donor_address: address,
+              donor_city: city,
+              purpose,
+            };
+
+            const { data: savedDonation, error: saveError } = await supabase
+              .from("donations")
+              .insert(donation)
+              .select()
+              .single();
+
+            if (saveError) throw saveError;
+
+            setDonationData(savedDonation ?? { ...donation, created_at: new Date().toISOString() });
+            setDonationComplete(true);
+            toast.success("Donation successful! Thank you for your generosity 🙏");
+          } catch (saveError: any) {
+            toast.error(saveError.message || "Donation saved nahi ho paya, please contact admin.");
+          }
         },
         prefill: { name, email, contact: mobile },
-        theme: { color: "#991b1b" },
+        theme: { color: `hsl(${primaryColor})` },
       };
       const rzp = new window.Razorpay(options);
       rzp.open();

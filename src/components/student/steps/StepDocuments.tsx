@@ -10,21 +10,29 @@ import { Upload, CheckCircle } from "lucide-react";
 interface Props {
   data: any;
   applicationId: string;
+  examGroup?: string;
+  lastClassPassed?: string;
   onNext: (data: any) => void;
   onBack: () => void;
 }
 
-const DOCUMENT_TYPES = [
-  { key: "photo", label: "Passport Size Photo *", accept: "image/*" },
-  { key: "signature", label: "Signature *", accept: "image/*" },
-  { key: "id_proof", label: "ID Proof (Aadhar/Voter ID)", accept: "image/*,.pdf" },
-  { key: "marksheet", label: "Last Class Marksheet", accept: "image/*,.pdf" },
-];
-
-export function StepDocuments({ data, applicationId, onNext, onBack }: Props) {
+export function StepDocuments({ data, applicationId, examGroup, lastClassPassed, onNext, onBack }: Props) {
   const { user } = useAuth();
   const [docs, setDocs] = useState<any>(data || {});
   const [uploading, setUploading] = useState<string | null>(null);
+
+  const getMarksheetLabel = () => {
+    if (examGroup === "group3") return "Class 10 Marksheet *";
+    if (lastClassPassed) return `Class ${lastClassPassed} Marksheet *`;
+    return "Previous Class Marksheet *";
+  };
+
+  const documentTypes = [
+    { key: "photo", label: "Passport Size Photo *", accept: "image/*" },
+    { key: "signature", label: "Signature *", accept: "image/*" },
+    { key: "id_proof", label: "ID Proof (Aadhar/Voter ID)", accept: "image/*,.pdf" },
+    { key: "marksheet", label: getMarksheetLabel(), accept: "image/*,.pdf" },
+  ];
 
   const handleUpload = async (key: string, file: File) => {
     if (!user) return;
@@ -45,8 +53,8 @@ export function StepDocuments({ data, applicationId, onNext, onBack }: Props) {
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (!docs.photo || !docs.signature) {
-      toast.error("Photo and Signature are required");
+    if (!docs.photo || !docs.signature || !docs.marksheet) {
+      toast.error("Photo, signature and required marksheet are mandatory");
       return;
     }
     onNext(docs);
@@ -55,8 +63,13 @@ export function StepDocuments({ data, applicationId, onNext, onBack }: Props) {
   return (
     <form onSubmit={handleSubmit} className="space-y-4">
       <p className="text-sm text-muted-foreground">Upload the required documents. Max file size: 2MB each.</p>
+      <div className="rounded-md border bg-muted/40 p-3 text-xs text-muted-foreground">
+        {examGroup === "group3"
+          ? "Group 3 candidates must upload their Class 10 marksheet."
+          : `Upload the marksheet of the last class passed${lastClassPassed ? ` (Class ${lastClassPassed})` : ""}.`}
+      </div>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-        {DOCUMENT_TYPES.map((docType) => (
+        {documentTypes.map((docType) => (
           <div key={docType.key} className="space-y-2 p-4 border rounded-md bg-card">
             <Label>{docType.label}</Label>
             {docs[docType.key] ? (
