@@ -174,7 +174,7 @@ export default function DonationPage() {
                       <HandHeart className="h-5 w-5 text-primary" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-primary">500+</p>
+                      <p className="text-2xl font-bold text-primary">10+</p>
                       <p className="text-xs text-muted-foreground">Donors</p>
                     </div>
                   </div>
@@ -187,7 +187,7 @@ export default function DonationPage() {
                       <TrendingUp className="h-5 w-5 text-accent" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-accent">25L+</p>
+                      <p className="text-2xl font-bold text-accent">2k+</p>
                       <p className="text-xs text-muted-foreground">Raised</p>
                     </div>
                   </div>
@@ -200,7 +200,7 @@ export default function DonationPage() {
                       <Users className="h-5 w-5 text-success" />
                     </div>
                     <div>
-                      <p className="text-2xl font-bold text-success">1000+</p>
+                      <p className="text-2xl font-bold text-success">3+</p>
                       <p className="text-xs text-muted-foreground">Lives Impacted</p>
                     </div>
                   </div>
