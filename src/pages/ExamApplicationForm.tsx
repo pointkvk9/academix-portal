@@ -155,6 +155,8 @@ export default function ExamApplicationForm() {
               <StepDocuments
                 data={application.documents as any || {}}
                 applicationId={application.id}
+                examGroup={exam.class}
+                lastClassPassed={application.education_details?.last_class_passed || ""}
                 onNext={(data) => updateApplication({ documents: data }, 6)}
                 onBack={() => setCurrentStep(4)}
               />
