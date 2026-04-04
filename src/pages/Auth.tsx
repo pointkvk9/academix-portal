@@ -72,7 +72,7 @@ export default function Auth() {
         password,
         options: {
           data: registrationMetadata,
-          emailRedirectTo: `${window.location.origin}/dashboard`,
+          emailRedirectTo: `${window.location.origin}`,
         },
       });
       
