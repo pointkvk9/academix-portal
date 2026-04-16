@@ -12,6 +12,7 @@ import { Separator } from "@/components/ui/separator";
 import { toast } from "sonner";
 import { Plus, X, BookOpen, Clock, Award, FileText, Settings, AlertTriangle } from "lucide-react";
 import { GROUPS } from "@/lib/groups";
+import { ExamDocumentConfig } from "./ExamDocumentConfig";
 
 interface CreateExamFormProps {
   onCreated: () => void;
@@ -43,12 +44,19 @@ export function CreateExamForm({ onCreated }: CreateExamFormProps) {
     total_questions: "",
   });
   const [subjects, setSubjects] = useState<string[]>(["सामान्य ज्ञान", "गणित", "विज्ञान", "हिंदी", "अंग्रेजी"]);
+  const [requiredDocs, setRequiredDocs] = useState([
+    { key: "photo", label: "Passport Size Photo", accept: "image/*", required: true },
+    { key: "signature", label: "Signature", accept: "image/*", required: true },
+    { key: "id_proof", label: "ID Proof (Aadhar/Voter ID)", accept: "image/*,.pdf", required: false },
+    { key: "marksheet", label: "Previous Class Marksheet", accept: "image/*,.pdf", required: true },
+  ]);
 
   const sections = [
     { icon: BookOpen, label: "Basic Details" },
     { icon: Settings, label: "Exam Pattern" },
     { icon: Clock, label: "Schedule & Fee" },
     { icon: Award, label: "Subjects" },
+    { icon: FileText, label: "Documents" },
     { icon: FileText, label: "Instructions" },
   ];
 
@@ -80,6 +88,7 @@ export function CreateExamForm({ onCreated }: CreateExamFormProps) {
       language: form.language,
       total_questions: parseInt(form.total_questions) || 0,
       subjects: subjects.filter(Boolean),
+      required_documents: requiredDocs,
       created_by: user?.id,
     } as any);
     if (error) {
