@@ -303,12 +303,26 @@ export function CreateExamForm({ onCreated }: CreateExamFormProps) {
               </Button>
               <div className="flex justify-between">
                 <Button type="button" variant="outline" onClick={() => setActiveSection(2)}>← Back</Button>
-                <Button type="button" onClick={() => setActiveSection(4)}>Next: Instructions →</Button>
+                <Button type="button" onClick={() => setActiveSection(4)}>Next: Documents →</Button>
               </div>
             </div>
           )}
 
           {activeSection === 4 && (
+            <div className="space-y-4">
+              <h3 className="font-semibold text-sm text-primary flex items-center gap-2">
+                <FileText className="h-4 w-4" /> Required Documents Configuration
+              </h3>
+              <p className="text-xs text-muted-foreground">Configure which documents students need to upload in the application form</p>
+              <ExamDocumentConfig documents={requiredDocs} onChange={setRequiredDocs} />
+              <div className="flex justify-between">
+                <Button type="button" variant="outline" onClick={() => setActiveSection(3)}>← Back</Button>
+                <Button type="button" onClick={() => setActiveSection(5)}>Next: Instructions →</Button>
+              </div>
+            </div>
+          )}
+
+          {activeSection === 5 && (
             <div className="space-y-4">
               <h3 className="font-semibold text-sm text-primary flex items-center gap-2">
                 <FileText className="h-4 w-4" /> Exam Instructions (परीक्षा निर्देश)
@@ -334,11 +348,12 @@ export function CreateExamForm({ onCreated }: CreateExamFormProps) {
                   <span className="text-muted-foreground">Total Marks:</span><span>{form.total_marks}</span>
                   <span className="text-muted-foreground">Fee:</span><span>₹{form.fee_amount || "—"}</span>
                   <span className="text-muted-foreground">Subjects:</span><span>{subjects.filter(Boolean).length}</span>
+                  <span className="text-muted-foreground">Documents:</span><span>{requiredDocs.length} configured</span>
                 </div>
               </div>
 
               <div className="flex justify-between">
-                <Button type="button" variant="outline" onClick={() => setActiveSection(3)}>← Back</Button>
+                <Button type="button" variant="outline" onClick={() => setActiveSection(4)}>← Back</Button>
                 <Button type="submit" disabled={loading} size="lg">
                   {loading ? "Creating..." : "Create Examination"}
                 </Button>
