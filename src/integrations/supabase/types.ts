@@ -294,6 +294,7 @@ export type Database = {
           negative_marking: boolean | null
           negative_marks_value: number | null
           passing_marks: number | null
+          required_documents: Json | null
           subjects: Json | null
           syllabus_url: string | null
           title: string
@@ -323,6 +324,7 @@ export type Database = {
           negative_marking?: boolean | null
           negative_marks_value?: number | null
           passing_marks?: number | null
+          required_documents?: Json | null
           subjects?: Json | null
           syllabus_url?: string | null
           title: string
@@ -352,6 +354,7 @@ export type Database = {
           negative_marking?: boolean | null
           negative_marks_value?: number | null
           passing_marks?: number | null
+          required_documents?: Json | null
           subjects?: Json | null
           syllabus_url?: string | null
           title?: string
