@@ -12,6 +12,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 import { Trash2, Calendar, IndianRupee, Clock, FileText, BookOpen, Users, Pencil, CalendarClock, Copy } from "lucide-react";
 import { getGroupLabel, getGroupClasses, GROUPS } from "@/lib/groups";
+import { ExamDocumentConfig } from "./ExamDocumentConfig";
 
 interface ExamListProps {
   exams: any[];
@@ -40,6 +41,13 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
     else { toast.success(`Exam ${!currentActive ? "activated" : "deactivated"}`); onRefresh(); }
   };
 
+  const defaultDocs = [
+    { key: "photo", label: "Passport Size Photo", accept: "image/*", required: true },
+    { key: "signature", label: "Signature", accept: "image/*", required: true },
+    { key: "id_proof", label: "ID Proof (Aadhar/Voter ID)", accept: "image/*,.pdf", required: false },
+    { key: "marksheet", label: "Previous Class Marksheet", accept: "image/*,.pdf", required: true },
+  ];
+
   const openEdit = (exam: any) => {
     setEditExam(exam);
     setEditForm({
@@ -57,6 +65,7 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
       total_questions: exam.total_questions?.toString() || "0",
       negative_marking: exam.negative_marking || false,
       negative_marks_value: exam.negative_marks_value?.toString() || "0",
+      required_documents: exam.required_documents || defaultDocs,
     });
   };
 
@@ -78,6 +87,7 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
       total_questions: parseInt(editForm.total_questions) || 0,
       negative_marking: editForm.negative_marking,
       negative_marks_value: editForm.negative_marking ? parseFloat(editForm.negative_marks_value) : 0,
+      required_documents: editForm.required_documents,
     } as any).eq("id", editExam.id);
     if (error) toast.error(error.message);
     else { toast.success("Exam updated successfully!"); setEditExam(null); onRefresh(); }
@@ -202,6 +212,13 @@ export function ExamList({ exams, onRefresh, onSelect }: ExamListProps) {
                 <Label className="text-xs font-semibold text-primary">Instructions (परीक्षा निर्देश)</Label>
                 <Textarea value={editForm.instructions || ""} onChange={(e) => setEditForm({ ...editForm, instructions: e.target.value })} rows={5} />
                 <p className="text-[10px] text-muted-foreground">These instructions appear on admit cards and receipts</p>
+              </div>
+              <div className="col-span-2">
+                <Separator className="my-2" />
+                <ExamDocumentConfig 
+                  documents={editForm.required_documents || defaultDocs}
+                  onChange={(docs) => setEditForm({ ...editForm, required_documents: docs })}
+                />
               </div>
             </div>
           </div>
