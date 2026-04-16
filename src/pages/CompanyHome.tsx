@@ -207,7 +207,7 @@ const CompanyHome = () => {
         </div>
       )}
       
-      {/* Marquee Registration Bar */}
+      {/* Marquee Registration Bar - Green */}
       <div 
         className="bg-green-600 hover:bg-yellow-400 cursor-pointer transition-colors py-2 border-b border-red-700 overflow-hidden"
         onClick={() => setShowExamPopup(true)}
@@ -219,6 +219,23 @@ const CompanyHome = () => {
               🎓 STUDENT REGISTRATION OPEN — Apply Now! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
               💰 DONATE to Support Community — Click Here! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
               👥 BECOME A MEMBER — Join KVK Sanstha! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+            </span>
+          ))}
+        </div>
+      </div>
+
+      {/* NEW: Yellow Contact Marquee Bar */}
+      <div 
+        className="bg-yellow-400 hover:bg-yellow-500 cursor-pointer transition-colors py-2 border-b border-yellow-600 overflow-hidden"
+        onClick={() => window.location.href = 'tel:6352061910'}
+      >
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+          {[1, 2, 3].map(i => (
+            <span key={i} className="inline-flex items-center gap-2 text-black text-xs md:text-sm font-bold">
+              📞 किसी भी समस्या के लिए संपर्क करें | For any query contact us &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              📱 6352061910 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              📞 हेल्पलाइन नंबर | Helpline Number: 6352061910 &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              ⏰ 24/7 Support Available &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
             </span>
           ))}
         </div>
