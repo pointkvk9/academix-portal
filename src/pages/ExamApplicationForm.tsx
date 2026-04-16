@@ -157,6 +157,7 @@ export default function ExamApplicationForm() {
                 applicationId={application.id}
                 examGroup={exam.class}
                 lastClassPassed={application.education_details?.last_class_passed || ""}
+                requiredDocuments={exam.required_documents as any[] || []}
                 onNext={(data) => updateApplication({ documents: data }, 6)}
                 onBack={() => setCurrentStep(4)}
               />

@@ -4,9 +4,11 @@ import { Card, CardContent, CardHeader, CardTitle, CardDescription } from "@/com
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Users, Search, FileText } from "lucide-react";
-import { getGroupLabel, getGroupClasses } from "@/lib/groups";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Users, Search, FileText, Eye, User } from "lucide-react";
+import { getGroupLabel } from "@/lib/groups";
 
 interface ExamSubmissionsProps {
   exams: any[];
@@ -18,6 +20,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
   const [submissions, setSubmissions] = useState<any[]>([]);
   const [loading, setLoading] = useState(false);
   const [search, setSearch] = useState("");
+  const [selectedStudent, setSelectedStudent] = useState<any>(null);
 
   useEffect(() => {
     if (!selectedExamId) return;
@@ -48,7 +51,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
     <Card className="border-t-4 border-t-primary">
       <CardHeader>
         <CardTitle className="flex items-center gap-2"><Users className="h-5 w-5 text-primary" /> Exam Submissions</CardTitle>
-        <CardDescription>View all student applications for each examination</CardDescription>
+        <CardDescription>View all student applications with full details</CardDescription>
         <Select value={selectedExamId || ""} onValueChange={onSelectExam}>
           <SelectTrigger className="w-full max-w-sm"><SelectValue placeholder="Select an examination" /></SelectTrigger>
           <SelectContent>
@@ -87,9 +90,11 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
                       <TableHead>Father's Name</TableHead>
                       <TableHead>Email</TableHead>
                       <TableHead>Mobile</TableHead>
+                      <TableHead>User ID</TableHead>
                       <TableHead>Progress</TableHead>
                       <TableHead>Fee</TableHead>
                       <TableHead>Status</TableHead>
+                      <TableHead>Actions</TableHead>
                     </TableRow>
                   </TableHeader>
                   <TableBody>
@@ -100,6 +105,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
                         <TableCell className="text-sm">{s.profile?.father_name || "—"}</TableCell>
                         <TableCell className="text-sm">{s.profile?.email || "—"}</TableCell>
                         <TableCell className="text-sm">{s.profile?.mobile || "—"}</TableCell>
+                        <TableCell className="text-xs font-mono text-muted-foreground">{s.user_id.slice(0, 8)}...</TableCell>
                         <TableCell>
                           <div className="flex items-center gap-1">
                             <div className="w-16 bg-muted rounded-full h-2"><div className="bg-primary rounded-full h-2 transition-all" style={{ width: `${(s.current_step / 6) * 100}%` }} /></div>
@@ -112,6 +118,11 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
                         <TableCell>
                           <Badge variant={s.is_submitted ? "default" : "outline"}>{s.is_submitted ? "✓ Submitted" : "Pending"}</Badge>
                         </TableCell>
+                        <TableCell>
+                          <Button size="sm" variant="ghost" onClick={() => setSelectedStudent(s)}>
+                            <Eye className="h-3 w-3 mr-1" /> Details
+                          </Button>
+                        </TableCell>
                       </TableRow>
                     ))}
                   </TableBody>
@@ -121,6 +132,83 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
           </>
         )}
       </CardContent>
+
+      {/* Student Detail Modal */}
+      <Dialog open={!!selectedStudent} onOpenChange={() => setSelectedStudent(null)}>
+        <DialogContent className="max-w-2xl max-h-[85vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <User className="h-5 w-5 text-primary" /> Student Details
+            </DialogTitle>
+          </DialogHeader>
+          {selectedStudent && (
+            <div className="space-y-4">
+              <div className="grid grid-cols-2 gap-3">
+                <InfoRow label="Full Name" value={selectedStudent.profile?.full_name} />
+                <InfoRow label="Father's Name" value={selectedStudent.profile?.father_name} />
+                <InfoRow label="Email (Login ID)" value={selectedStudent.profile?.email} highlight />
+                <InfoRow label="Mobile" value={selectedStudent.profile?.mobile} />
+                <InfoRow label="Gender" value={selectedStudent.profile?.gender} />
+                <InfoRow label="Group/Class" value={selectedStudent.profile?.class ? getGroupLabel(selectedStudent.profile.class) : "—"} />
+                <InfoRow label="User ID" value={selectedStudent.user_id} mono />
+                <InfoRow label="Application ID" value={selectedStudent.id} mono />
+                <InfoRow label="Fee Status" value={selectedStudent.fee_status} />
+                <InfoRow label="Submitted" value={selectedStudent.is_submitted ? `Yes (${new Date(selectedStudent.submitted_at || selectedStudent.created_at).toLocaleDateString("en-IN")})` : "No"} />
+                <InfoRow label="Application Date" value={new Date(selectedStudent.created_at).toLocaleDateString("en-IN")} />
+                <InfoRow label="Progress" value={`Step ${selectedStudent.current_step}/6`} />
+              </div>
+
+              {selectedStudent.personal_details && Object.keys(selectedStudent.personal_details).length > 0 && (
+                <div>
+                  <h4 className="text-xs font-semibold text-primary mb-2">Personal Details (from form)</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(selectedStudent.personal_details as Record<string, any>).map(([key, val]) => (
+                      <InfoRow key={key} label={key.replace(/_/g, " ")} value={String(val || "—")} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedStudent.address_details && Object.keys(selectedStudent.address_details).length > 0 && (
+                <div>
+                  <h4 className="text-xs font-semibold text-primary mb-2">Address Details</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(selectedStudent.address_details as Record<string, any>).map(([key, val]) => (
+                      <InfoRow key={key} label={key.replace(/_/g, " ")} value={String(val || "—")} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {selectedStudent.education_details && Object.keys(selectedStudent.education_details).length > 0 && (
+                <div>
+                  <h4 className="text-xs font-semibold text-primary mb-2">Education Details</h4>
+                  <div className="grid grid-cols-2 gap-2">
+                    {Object.entries(selectedStudent.education_details as Record<string, any>).map(([key, val]) => (
+                      <InfoRow key={key} label={key.replace(/_/g, " ")} value={String(val || "—")} />
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              <p className="text-[10px] text-muted-foreground">
+                Note: Student's login email is shown above. Password is managed by the student and cannot be viewed by admin for security reasons.
+              </p>
+            </div>
+          )}
+        </DialogContent>
+      </Dialog>
     </Card>
+  );
+}
+
+function InfoRow({ label, value, highlight, mono }: { label: string; value?: string | null; highlight?: boolean; mono?: boolean }) {
+  return (
+    <div className="space-y-0.5">
+      <p className="text-[10px] text-muted-foreground capitalize">{label}</p>
+      <p className={`text-xs ${highlight ? "font-semibold text-primary" : ""} ${mono ? "font-mono text-[10px]" : ""}`}>
+        {value || "—"}
+      </p>
+    </div>
   );
 }
