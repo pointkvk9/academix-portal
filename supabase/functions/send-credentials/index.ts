@@ -1,4 +1,7 @@
-import { corsHeaders } from "https://esm.sh/@supabase/supabase-js@2.95.0/cors";
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Headers": "authorization, x-client-info, apikey, content-type",
+};
 
 Deno.serve(async (req: Request) => {
   if (req.method === "OPTIONS") return new Response("ok", { headers: corsHeaders });
@@ -12,15 +15,14 @@ Deno.serve(async (req: Request) => {
       });
     }
 
-    const LOVABLE_API_KEY = Deno.env.get("LOVABLE_API_KEY");
-    if (!LOVABLE_API_KEY) {
-      console.log("[send-credentials] No LOVABLE_API_KEY — skipping email send");
+    const RESEND_API_KEY = Deno.env.get("RESEND_API_KEY");
+    if (!RESEND_API_KEY) {
+      console.log("[send-credentials] RESEND_API_KEY missing — skipping email");
       return new Response(JSON.stringify({ ok: true, skipped: true }), {
         headers: { ...corsHeaders, "Content-Type": "application/json" },
       });
     }
 
-    // Use Lovable email API (best-effort)
     const html = `
       <div style="font-family: Arial, sans-serif; max-width: 600px; margin: 0 auto; padding: 20px;">
         <div style="background: linear-gradient(135deg, #b91c1c, #dc2626); color: white; padding: 24px; text-align: center; border-radius: 8px 8px 0 0;">
@@ -40,23 +42,30 @@ Deno.serve(async (req: Request) => {
       </div>
     `;
 
-    const res = await fetch("https://ai.gateway.lovable.dev/v1/email/send", {
+    const res = await fetch("https://api.resend.com/emails", {
       method: "POST",
       headers: {
-        Authorization: `Bearer ${LOVABLE_API_KEY}`,
+        Authorization: `Bearer ${RESEND_API_KEY}`,
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
-        to: email,
+        from: "KVK Sanstha <onboarding@resend.dev>",
+        to: [email],
         subject: "Your KVK Sanstha Login Credentials",
         html,
       }),
     });
 
+    const responseText = await res.text();
     if (!res.ok) {
-      console.log("[send-credentials] email API failed:", res.status);
+      console.error("[send-credentials] Resend failed:", res.status, responseText);
+      return new Response(JSON.stringify({ ok: false, error: responseText }), {
+        status: 200,
+        headers: { ...corsHeaders, "Content-Type": "application/json" },
+      });
     }
 
+    console.log("[send-credentials] sent to", email);
     return new Response(JSON.stringify({ ok: true }), {
       headers: { ...corsHeaders, "Content-Type": "application/json" },
     });
