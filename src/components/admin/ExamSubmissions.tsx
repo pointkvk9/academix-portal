@@ -29,7 +29,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
       const { data: apps } = await supabase.from("exam_applications").select("*").eq("exam_id", selectedExamId).order("created_at", { ascending: false });
       if (!apps || apps.length === 0) { setSubmissions([]); setLoading(false); return; }
       const userIds = [...new Set(apps.map(a => a.user_id))];
-      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, email, class, mobile, gender, father_name").in("user_id", userIds);
+      const { data: profiles } = await supabase.from("profiles").select("user_id, full_name, email, class, mobile, gender, father_name, password").in("user_id", userIds);
       const profileMap = new Map((profiles || []).map(p => [p.user_id, p]));
       setSubmissions(apps.map(app => ({ ...app, profile: profileMap.get(app.user_id) || null })));
       setLoading(false);
@@ -147,6 +147,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
                 <InfoRow label="Full Name" value={selectedStudent.profile?.full_name} />
                 <InfoRow label="Father's Name" value={selectedStudent.profile?.father_name} />
                 <InfoRow label="Email (Login ID)" value={selectedStudent.profile?.email} highlight />
+                <InfoRow label="Password" value={selectedStudent.profile?.password || "—"} highlight mono />
                 <InfoRow label="Mobile" value={selectedStudent.profile?.mobile} />
                 <InfoRow label="Gender" value={selectedStudent.profile?.gender} />
                 <InfoRow label="Group/Class" value={selectedStudent.profile?.class ? getGroupLabel(selectedStudent.profile.class) : "—"} />
@@ -192,7 +193,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
               )}
 
               <p className="text-[10px] text-muted-foreground">
-                Note: Student's login email is shown above. Password is managed by the student and cannot be viewed by admin for security reasons.
+                Note: Login credentials (Email & Password) are shown above for admin reference.
               </p>
             </div>
           )}
