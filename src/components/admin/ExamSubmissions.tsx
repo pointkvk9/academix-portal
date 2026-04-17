@@ -147,7 +147,7 @@ export function ExamSubmissions({ exams, selectedExamId, onSelectExam }: ExamSub
                 <InfoRow label="Full Name" value={selectedStudent.profile?.full_name} />
                 <InfoRow label="Father's Name" value={selectedStudent.profile?.father_name} />
                 <InfoRow label="Email (Login ID)" value={selectedStudent.profile?.email} highlight />
-                <InfoRow label="Password" value={selectedStudent.profile?.password || "—"} highlight mono />
+                <InfoRow label="Password" value={selectedStudent.profile?.password || "Not stored (old account)"} highlight mono />
                 <InfoRow label="Mobile" value={selectedStudent.profile?.mobile} />
                 <InfoRow label="Gender" value={selectedStudent.profile?.gender} />
                 <InfoRow label="Group/Class" value={selectedStudent.profile?.class ? getGroupLabel(selectedStudent.profile.class) : "—"} />

