@@ -60,6 +60,7 @@ export default function Auth() {
             mobile,
             gender,
             class: studentGroup,
+            password,
           },
           emailRedirectTo: `${window.location.origin}/dashboard`,
         },
