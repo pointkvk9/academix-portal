@@ -207,18 +207,27 @@ const CompanyHome = () => {
         </div>
       )}
       
-      {/* Marquee Registration Bar - Green */}
-      <div 
-        className="bg-green-600 hover:bg-yellow-400 cursor-pointer transition-colors py-2 border-b border-red-700 overflow-hidden"
-        onClick={() => setShowExamPopup(true)}
-      >
-        <div className="animate-marquee whitespace-nowrap flex items-center gap-8">
+      {/* Marquee Registration Bar - Green (segmented click targets) */}
+      <div className="bg-green-600 hover:bg-green-700 transition-colors py-2 border-b border-red-700 overflow-hidden">
+        <div className="animate-marquee whitespace-nowrap flex items-center gap-2">
           {[1, 2, 3].map(i => (
             <span key={i} className="inline-flex items-center gap-2 text-white text-xs md:text-sm font-bold">
-              📢 EXAM PORTAL | सामान्य ज्ञान प्रतियोगिता 2026-27 | रजिस्ट्रेशन शुरू — Click Here! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-              🎓 STUDENT REGISTRATION OPEN — Apply Now! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-              💰 DONATE to Support Community — Click Here! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
-              👥 BECOME A MEMBER — Join KVK Sanstha! &nbsp;&nbsp;&nbsp;|&nbsp;&nbsp;&nbsp;
+              <button onClick={() => setShowExamPopup(true)} className="hover:bg-yellow-400 hover:text-black px-2 py-0.5 rounded transition-colors cursor-pointer">
+                📢 EXAM PORTAL | सामान्य ज्ञान प्रतियोगिता 2026-27 | रजिस्ट्रेशन शुरू — Click Here!
+              </button>
+              <span>|</span>
+              <button onClick={() => navigate("/exam")} className="hover:bg-yellow-400 hover:text-black px-2 py-0.5 rounded transition-colors cursor-pointer">
+                🎓 STUDENT REGISTRATION OPEN — Apply Now!
+              </button>
+              <span>|</span>
+              <button onClick={() => navigate("/donate")} className="hover:bg-yellow-400 hover:text-black px-2 py-0.5 rounded transition-colors cursor-pointer">
+                💰 DONATE to Support Community — Click Here!
+              </button>
+              <span>|</span>
+              <button onClick={() => navigate("/membership")} className="hover:bg-yellow-400 hover:text-black px-2 py-0.5 rounded transition-colors cursor-pointer">
+                👥 BECOME A MEMBER — Join KVK Sanstha!
+              </button>
+              <span>|</span>
             </span>
           ))}
         </div>
