@@ -63,8 +63,8 @@ export function DonationAnalytics() {
   const PIE_COLORS = ["hsl(0, 75%, 42%)", "hsl(38, 92%, 50%)", "hsl(142, 70%, 35%)", "hsl(199, 89%, 48%)", "hsl(270, 70%, 50%)"];
 
   const handleUploadSetting = async (key: string, file: File) => {
-    const ext = file.name.split(".").pop();
-    const path = `settings/${key}_${Date.now()}.${ext}`;
+    const ext = (file.name.split(".").pop() || "png").toLowerCase().replace(/[^a-z0-9]/g, "") || "png";
+    const path = `settings/${key}_${Date.now()}_${Math.random().toString(36).slice(2, 8)}.${ext}`;
     const { error } = await supabase.storage.from("documents").upload(path, file);
     if (error) { toast.error("Upload failed"); return; }
     const { data: urlData } = supabase.storage.from("documents").getPublicUrl(path);
