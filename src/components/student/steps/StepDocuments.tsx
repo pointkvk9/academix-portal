@@ -50,9 +50,9 @@ export function StepDocuments({ data, applicationId, examGroup, lastClassPassed,
       let label = "Previous Class Marksheet";
       if (examGroup === "group3") label = "Class 10 Marksheet";
       else if (lastClassPassed) label = `Class ${lastClassPassed} Marksheet`;
-      return { ...d, label: d.required ? `${label} *` : label };
+      return { ...d, label };
     }
-    return { ...d, label: d.required ? `${d.label} *` : d.label };
+    return { ...d };
   });
 
   const handleUpload = async (key: string, file: File) => {
