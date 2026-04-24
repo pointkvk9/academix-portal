@@ -35,9 +35,15 @@ export default function ExamApplicationForm() {
   useEffect(() => {
     if (!examId || !user) return;
     Promise.all([
-      supabase.from("exams").select("*").eq("id", examId).single(),
+      supabase.from("exams").select("*").eq("id", examId).maybeSingle(),
       supabase.from("exam_applications").select("*").eq("exam_id", examId).eq("user_id", user.id).maybeSingle(),
-    ]).then(([{ data: examData }, { data: appData }]) => {
+    ]).then(([{ data: examData, error: examError }, { data: appData, error: appError }]) => {
+      if (examError) {
+        toast.error(examError.message);
+      }
+      if (appError) {
+        toast.error(appError.message);
+      }
       setExam(examData);
       if (appData) {
         setApplication(appData);
@@ -80,7 +86,7 @@ export default function ExamApplicationForm() {
   };
 
   if (loading) return <div className="min-h-screen bg-background"><GovtHeader /><p className="text-center py-12">Loading...</p></div>;
-  if (!exam) return <div className="min-h-screen bg-background"><GovtHeader /><p className="text-center py-12">Exam not found</p></div>;
+  if (!exam) return <div className="min-h-screen bg-background"><GovtHeader /><p className="text-center py-12">Exam not found or no longer available.</p></div>;
 
   // If no application exists, create one
   if (!application) {
