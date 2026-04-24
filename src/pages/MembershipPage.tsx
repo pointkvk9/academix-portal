@@ -82,11 +82,11 @@ export default function MembershipPage() {
     setLoading(true);
     const plan = MEMBERSHIP_PLANS.find(p => p.type === selectedPlan)!;
 
-    try {
+      try {
       let photoUrl = "";
       if (photoFile) {
-        const ext = photoFile.name.split(".").pop();
-        const path = `members/${Date.now()}.${ext}`;
+          const ext = (photoFile.name.split(".").pop() || "jpg").toLowerCase().replace(/[^a-z0-9]/g, "") || "jpg";
+          const path = `members/${Date.now()}-${Math.random().toString(36).slice(2, 8)}.${ext}`;
         const { error: uploadErr } = await supabase.storage.from("documents").upload(path, photoFile);
         if (!uploadErr) {
           const { data: urlData } = supabase.storage.from("documents").getPublicUrl(path);
