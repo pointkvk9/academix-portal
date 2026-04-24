@@ -40,7 +40,7 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
             .from("exam_applications")
             .select("personal_details, documents")
             .eq("id", card.application_id)
-            .single();
+            .maybeSingle();
           if (!error && data) {
             details[card.application_id] = data;
           }
