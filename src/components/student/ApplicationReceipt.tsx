@@ -15,6 +15,16 @@ export function ApplicationReceipt({ application, profile }: ApplicationReceiptP
   const personalDetails = application.personal_details || {};
   const addressDetails = application.address_details || {};
   const selectedSubjects = application.selected_subjects || [];
+  const noticeLines = exam?.instructions
+    ? String(exam.instructions)
+        .split(/\r?\n/)
+        .map((line: string) => line.replace(/^\s*(\d+[.)-]?|[-•])\s*/, "").trim())
+        .filter(Boolean)
+    : [
+        "Keep this confirmation safe for future reference.",
+        "Admit Card will be available after centers are allocated.",
+        "Check your registered email regularly for updates.",
+      ];
 
   return (
     <div>
@@ -117,9 +127,9 @@ export function ApplicationReceipt({ application, profile }: ApplicationReceiptP
             <div style={{ padding: "10px", background: "#fff8e1", border: "1px solid #ffc107", borderRadius: "4px", fontSize: "11px", marginBottom: "12px" }}>
               <h4 style={{ fontWeight: 700, color: "#e65100", marginBottom: "4px", fontSize: "10px", textTransform: "uppercase" }}>⚠ Important Notice</h4>
               <ul style={{ paddingLeft: "16px", margin: 0 }}>
-                <li>Keep this confirmation safe for future reference.</li>
-                <li>Admit Card will be available after centers are allocated.</li>
-                <li>Check your registered email regularly for updates.</li>
+                {noticeLines.map((line: string, index: number) => (
+                  <li key={index}>{line}</li>
+                ))}
               </ul>
             </div>
 

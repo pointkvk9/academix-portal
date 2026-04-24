@@ -14,6 +14,23 @@ interface AdmitCardViewProps {
 export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
   const [applicationDetails, setApplicationDetails] = useState<Record<string, any>>({});
 
+  const getInstructionLines = (instructions?: string | null) => {
+    if (!instructions) {
+      return [
+        "Carry Admit Card + valid govt photo ID (Aadhar/Voter ID).",
+        "Report by Reporting Time. No entry after Gate Closing.",
+        "Electronic devices strictly prohibited.",
+        "Carry blue/black ballpoint pen, pencil, eraser.",
+        "Unfair means → cancellation of candidature.",
+      ];
+    }
+
+    return instructions
+      .split(/\r?\n/)
+      .map((line) => line.replace(/^\s*(\d+[.)-]?|[-•])\s*/, "").trim())
+      .filter(Boolean);
+  };
+
   useEffect(() => {
     const fetchApplicationDetails = async () => {
       const details: Record<string, any> = {};
@@ -272,14 +289,12 @@ export function AdmitCardView({ admitCards, profile }: AdmitCardViewProps) {
                   )}
 
                   {/* Instructions */}
-                  <div style={{ padding: "8px 10px", background: "#fff8e1", border: "1px solid #ffc107", borderRadius: "4px", fontSize: "10px", marginBottom: "12px" }}>
+                    <div style={{ padding: "8px 10px", background: "#fff8e1", border: "1px solid #ffc107", borderRadius: "4px", fontSize: "10px", marginBottom: "12px" }}>
                     <h4 style={{ fontWeight: 700, color: "#e65100", marginBottom: "4px", fontSize: "9px", textTransform: "uppercase" }}>⚠ Important Instructions</h4>
                     <ul style={{ paddingLeft: "14px", margin: 0, lineHeight: 1.5 }}>
-                      <li>Carry Admit Card + valid govt photo ID (Aadhar/Voter ID).</li>
-                      <li>Report by Reporting Time. No entry after Gate Closing.</li>
-                      <li>Electronic devices strictly prohibited.</li>
-                      <li>Carry blue/black ballpoint pen, pencil, eraser.</li>
-                      <li>Unfair means → cancellation of candidature.</li>
+                        {getInstructionLines(exam?.instructions).map((instruction, index) => (
+                          <li key={index}>{instruction}</li>
+                        ))}
                     </ul>
                   </div>
 

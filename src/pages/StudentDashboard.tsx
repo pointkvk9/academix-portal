@@ -20,7 +20,7 @@ import { getGroupLabel, getGroupClasses, getGroupDetails } from "@/lib/groups";
 import { toast } from "sonner";
 
 export default function StudentDashboard() {
-  const { signOut, profile, user } = useAuth();
+  const { signOut, profile, user, loading: authLoading, refreshProfile } = useAuth();
   const navigate = useNavigate();
   const [exams, setExams] = useState<any[]>([]);
   const [applications, setApplications] = useState<any[]>([]);
@@ -31,12 +31,10 @@ export default function StudentDashboard() {
   const [refreshing, setRefreshing] = useState(false);
 
   useEffect(() => {
+    if (authLoading) return;
     if (!user || !profile) {
       if (user && !profile) {
-        const timer = setTimeout(() => {
-          window.location.reload();
-        }, 2000);
-        return () => clearTimeout(timer);
+        refreshProfile().catch(() => {});
       }
       return;
     }
@@ -88,7 +86,7 @@ export default function StudentDashboard() {
     };
 
     fetchData();
-  }, [user, profile]);
+  }, [user, profile, authLoading, refreshProfile]);
 
   const handleRefresh = async () => {
     setRefreshing(true);
@@ -135,7 +133,7 @@ export default function StudentDashboard() {
 
   const studentGroupDetails = getGroupDetails(profile?.class || "");
 
-  if (loading) {
+  if (authLoading || loading || (user && !profile)) {
     return (
       <div className="min-h-screen bg-background">
         <GovtHeader />

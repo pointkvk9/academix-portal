@@ -36,6 +36,13 @@ export function StepDocuments({ data, applicationId, examGroup, lastClassPassed,
   const [docs, setDocs] = useState<any>(data || {});
   const [uploading, setUploading] = useState<string | null>(null);
 
+  const buildFilePath = (key: string, file: File) => {
+    const ext = (file.name.split(".").pop() || "bin").toLowerCase();
+    const safeExt = ext.replace(/[^a-z0-9]/g, "") || "bin";
+    const uniquePart = `${Date.now()}-${Math.random().toString(36).slice(2, 8)}`;
+    return `${user?.id}/${applicationId}/${key}-${uniquePart}.${safeExt}`;
+  };
+
   // Use exam-configured documents or fall back to defaults
   const documentTypes = (requiredDocuments && requiredDocuments.length > 0) ? requiredDocuments : defaultDocs.map(d => {
     // Dynamic marksheet label based on group
@@ -43,22 +50,25 @@ export function StepDocuments({ data, applicationId, examGroup, lastClassPassed,
       let label = "Previous Class Marksheet";
       if (examGroup === "group3") label = "Class 10 Marksheet";
       else if (lastClassPassed) label = `Class ${lastClassPassed} Marksheet`;
-      return { ...d, label: d.required ? `${label} *` : label };
+      return { ...d, label };
     }
-    return { ...d, label: d.required ? `${d.label} *` : d.label };
+    return { ...d };
   });
 
   const handleUpload = async (key: string, file: File) => {
     if (!user) return;
     setUploading(key);
-    const ext = file.name.split(".").pop();
-    const path = `${user.id}/${applicationId}/${key}.${ext}`;
-    
-    const { error } = await supabase.storage.from("documents").upload(path, file, { upsert: true });
+    const previousPath = docs[key];
+    const path = buildFilePath(key, file);
+
+    const { error } = await supabase.storage.from("documents").upload(path, file, { upsert: false });
     if (error) {
       toast.error(`Upload failed: ${error.message}`);
     } else {
-      setDocs({ ...docs, [key]: path });
+      if (previousPath) {
+        await supabase.storage.from("documents").remove([previousPath]);
+      }
+      setDocs((current: any) => ({ ...current, [key]: path }));
       toast.success("Uploaded successfully!");
     }
     setUploading(null);
